@@ -1,49 +1,42 @@
-class InsertControl {
-    constructor(screen, cursor, lines) {
-        this.screen = screen;
-        this.lines = lines;
-        this.cursor = cursor;
-    }
-
-    handleKey(c) {
+function insertControl(screen, cursor, lines, c) {
         print(c.charCodeAt(0), c);
         switch (c) {
             case 'ArrowUp':
-                this.cursor.row--;
+                cursor.row--;
                 break;
             case 'ArrowDown':
-                this.cursor.row++;
+                cursor.row++;
                 break;
             case 'ArrowLeft':
-                this.cursor.column--;
+                cursor.column--;
                 break;
             case 'ArrowRight':
-                this.cursor.column++;
+                cursor.column++;
                 break;
             case 'Backspace':
-                if (this.cursor.column === 0 && this.cursor.row !== 0) {
+                if (cursor.column === 0 && cursor.row !== 0) {
 
-                    this.cursor.row--;
-                    this.cursor.column = this.lines[this.cursor.row].length;
-                    this.lines[this.cursor.row].push(...this.lines[this.cursor.row + 1]);
-                    this.lines.splice(this.cursor.row + 1, 1);
-                } else if (this.cursor.column !== 0) {
-                    this.lines[cursor.row].splice(this.cursor.column - 1, 1);
-                    this.cursor.column--;
+                    cursor.row--;
+                    cursor.column = lines[cursor.row].length;
+                    lines[cursor.row].push(...lines[cursor.row + 1]);
+                    lines.splice(cursor.row + 1, 1);
+                } else if (cursor.column !== 0) {
+                    lines[cursor.row].splice(cursor.column - 1, 1);
+                    cursor.column--;
                 }
                 break;
             case '\n':
             case '\r':
             case 'Enter':
             case 'Return':
-                this.lines.splice(this.cursor.row + 1, 0, []);
-                for (let i = this.cursor.column; i < this.lines[this.cursor.row].length; i++) {
-                    this.lines[this.cursor.row + 1]
-                        .push(this.lines[this.cursor.row][i]);
+                lines.splice(cursor.row + 1, 0, []);
+                for (let i = cursor.column; i < lines[cursor.row].length; i++) {
+                    lines[cursor.row + 1]
+                        .push(lines[cursor.row][i]);
                 }
-                this.lines[this.cursor.row].splice(this.cursor.column);
-                this.cursor.row++;
-                this.cursor.column = 0;
+                lines[cursor.row].splice(cursor.column);
+                cursor.row++;
+                cursor.column = 0;
                 break;
             case 'Delete':
             case 'Control':
@@ -65,9 +58,8 @@ class InsertControl {
             case 'Insert':
                 break;
             default:
-                this.lines[this.cursor.row].splice(this.cursor.column, 0, c);
-                this.cursor.column++;
+                lines[cursor.row].splice(cursor.column, 0, c);
+                cursor.column++;
                 break;
         }
-    } 
 }
