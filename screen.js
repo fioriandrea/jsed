@@ -75,7 +75,7 @@ class Screen {
         let row = Math.floor(cursor.column / this.ncolumns);
 
         for (let i = 0; i < cursor.row; i++) {
-            row += Math.max(1, Math.ceil(lines[i].length / this.ncolumns));
+            row += Math.max(1, Math.ceil(lines.getColumns(i) / this.ncolumns));
         }
 
         return {column, row};
@@ -103,14 +103,14 @@ class Drawer {
         textSize(20);
         fill(255);
 
-        for (let i = 0, row = 0; i < this.lines.length; i++, row++) {      
-            for (let j = 0, column = 0; j < this.lines[i].length; j++, column++) {
+        for (let i = 0, row = 0; i < this.lines.getRows(); i++, row++) {      
+            for (let j = 0, column = 0; j < this.lines.getColumns(i); j++, column++) {
                 if (column !== 0 && column % this.screen.ncolumns === 0) {
                     row++;
                     column = 0;
                 }
                 const {x, y} = this.screen.cellToPixels(column, row);
-                text(this.lines[i][j], x, y, this.screen.columnSize, this.screen.rowSize);
+                text(this.lines.getCharacter(i, j), x, y, this.screen.columnSize, this.screen.rowSize);
             }
         }
     }
