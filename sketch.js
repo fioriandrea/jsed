@@ -22,7 +22,8 @@ function draw() {
         blinker.reset();
         drawer.drawCursor();
     } else {
-        blinker.execute(() => drawer.drawCursor());
+        if (blinker.output())
+            drawer.drawCursor();
     }
     drawer.drawLines();
 }

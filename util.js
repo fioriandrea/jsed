@@ -13,14 +13,12 @@ class Blinker {
         this.millis = milliseconds();
     }
 
-    execute(fn, args=[]) {
+    output() {
         let delta = milliseconds() - this.millis;
-        if (this.onCondition(delta)) {
-            fn(...args);
-        }
         if (delta >= this.period) {
             this.millis = milliseconds();
         }
+        return this.onCondition(delta) ? 1 : 0;
     }
 }
 
@@ -30,11 +28,17 @@ class CoolDown {
         this.lastExecution = null;
     }
 
-    execute(fn, args=[]) {
+    reset() {
+        this.lastExecution = null;
+    }
+
+    output() {
         const currentMillis = millis();
         if (this.lastExecution === null || currentMillis - this.lastExecution > this.delay) {
-            fn(...args);
             this.lastExecution = currentMillis;
+            return 1;
+        } else {
+            return 0;
         }
     }
 }
