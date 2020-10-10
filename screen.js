@@ -8,8 +8,8 @@ class Screen {
     }
 
     _computeSize() {
-        this._columnSize = Math.floor(this._width / this._ncolumns);
-        this._rowSize = Math.floor(this._height / this._nrows);
+        this._columnSize = this._width / this._ncolumns;
+        this._rowSize = this._height / this._nrows;
     }
 
     get width() {

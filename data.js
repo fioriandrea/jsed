@@ -66,7 +66,6 @@ class Lines {
 
 class Cursor {
     constructor(lines, column=0, row=0) {
-        this.screen = screen;
         this.lines = lines;
         this._column = column;
         this._row = row;

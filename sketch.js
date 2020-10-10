@@ -6,14 +6,14 @@ let drawer;
 let blinker;
 
 function setup() {
-    createCanvas(400, 400);
-    lines = new Lines([["c"], ["c", "i", "a", "o"], [], ["c", "i", "l", "a", "c", "c", "a"], ["c", "0", "m", "e"],]);
+    createCanvas(600, 400);
+    lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
-    screen = new Screen(width, height, 35, 13);
+    screen = new Screen(width, height, 47, 13);
     drawer = new Drawer(screen, cursor, lines);
 
     blinker = new Blinker(2000);
-    window.addEventListener("keydown", e => insertControl(screen, cursor, lines, e.key));
+    window.addEventListener("keydown", e => insertKeyControl(e.key, {cursor, lines}));
 }
 
 function draw() {

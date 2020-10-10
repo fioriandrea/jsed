@@ -1,19 +1,9 @@
-function insertControl(screen, cursor, lines, c) {
-    print(c.charCodeAt(0), c);
-    switch (c) {
-        case 'ArrowUp':
-            cursor.row--;
-            break;
-        case 'ArrowDown':
-            cursor.row++;
-            break;
-        case 'ArrowLeft':
-            cursor.column--;
-            break;
-        case 'ArrowRight':
-            cursor.column++;
-            break;
-        case 'Backspace':
+const insertKeyBindings = {
+    'ArrowUp': ({cursor}) => cursor.row--,
+    'ArrowDown': ({cursor}) => cursor.row++,
+    'ArrowLeft': ({cursor}) => cursor.column--,
+    'ArrowRight': ({cursor}) => cursor.column++,
+    'Backspace': ({cursor, lines}) => {
             let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
             if (lines.deleteCharacter(cursor.row, cursor.column, false)) {
                 cursor.row--;
@@ -21,39 +11,65 @@ function insertControl(screen, cursor, lines, c) {
             } else {
                 cursor.column--;
             }
-            break;
-        case 'Delete':
-            lines.deleteCharacter(cursor.row, cursor.column, true); 
-            break;
-        case '\n':
-        case '\r':
-        case 'Enter':
-        case 'Return':
+        },
+    'Delete': ({cursor, lines}) => lines.deleteCharacter(cursor.row, cursor.column, true),
+    'Enter': ({cursor, lines}) => {
             lines.insertNewLine(cursor.row, cursor.column);
             cursor.row++;
             cursor.column = 0;
-            break;
-        case 'Control':
-        case 'Alt':
-        case 'OS':
-        case 'AltGraph':
-        case 'Shift':
-        case 'Escape':
-        case 'F1':
-        case 'F2':
-        case 'F3':
-        case 'F4':
-        case 'F5':
-        case 'F6':
-        case 'F7':
-        case 'F8':
-        case 'F9':
-        case 'F10':
-        case 'Insert':
-            break;
-        default:
-            lines.insertCharacters(cursor.row, cursor.column, c);
-            cursor.column++;
-            break;
+    },
+    'Control': () => {},
+    'Alt': () => {},
+    'OS': () => {},
+    'AltGraph': () => {},
+    'Shift': () => {},
+    'Escape': () => {},
+    'F1': () => {},
+    'F2': () => {},
+    'F3': () => {},
+    'F4': () => {},
+    'F5': () => {},
+    'F6': () => {},
+    'F7': () => {},
+    'F8': () => {},
+    'F9': () => {},
+    'F10': () => {},
+    'Insert': () => {},
+};
+
+insertKeyBindings['\n'] = insertKeyBindings['Enter'];
+insertKeyBindings['\r'] = insertKeyBindings['Enter'];
+insertKeyBindings['Return'] = insertKeyBindings['Enter'];
+
+const insertKeyControl = (key, editor) => {
+    if (insertKeyBindings[key]) {
+        insertKeyBindings[key](editor);
+    } else {
+        let {cursor, lines} = editor;
+        lines.insertCharacters(cursor.row, cursor.column, key);
+        cursor.column++;
     }
-}
+};
+
+const commandControl = (keys, commands, editor) => {
+    // todo
+    /*
+        {
+            'd': {
+                sons: {
+                    'd': {
+                        action: deleteLine,
+                        sons: {},
+                    },
+                },
+            },
+        }
+    */
+    let node = commands[keys[0]];
+    for (let i = 1; i < keys.length && node !== undefined; i++) {
+        node = node.sons[keys[i]];
+    }
+
+    if (node !== undefined)
+        node.action(editor);
+};
