@@ -18,6 +18,11 @@ function setup() {
 
 function draw() {
     background(0);
-    blinker.execute(() => drawer.drawCursor());
+    if (keyIsPressed) {
+        blinker.reset();
+        drawer.drawCursor();
+    } else {
+        blinker.execute(() => drawer.drawCursor());
+    }
     drawer.drawLines();
 }
