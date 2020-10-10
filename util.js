@@ -22,6 +22,26 @@ class Blinker {
     }
 }
 
+class Timeout {
+    constructor(interval) {
+        this.interval = interval;
+        this.lastTime = null;
+    }
+
+    reset() {
+        this.lastTime = null;
+    }
+
+    output() {
+        if (this.lastTime === null)
+            this.lastTime = milliseconds();
+        if (milliseconds() - this.lastTime < this.interval)
+            return 1;
+        else 
+            return 0;
+    }
+}
+
 class CoolDown {
     constructor(delay) {
         this.delay = delay;
