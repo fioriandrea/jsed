@@ -37,6 +37,7 @@ const insertKeyBindings = {
     'OS': () => {},
     'AltGraph': () => {},
     'Shift': () => {},
+    'CapsLock': () => {},
     'Escape': () => {},
     'F1': () => {},
     'F2': () => {},
