@@ -4,6 +4,7 @@ class Screen {
         this._height = height;
         this._ncolumns = ncolumns;
         this._nrows = nrows;
+        this._rowOffset = 0;
         this._computeSize();
     }
 
@@ -56,35 +57,64 @@ class Screen {
         return this._columnSize;
     }
 
-    cellToPixels(column, row) {
-        return {
-            x: this.columnSize * column,
-            y: this.rowSize * row,
-        }
+    get rowOffset() {
+        return this._rowOffset;
     }
 
-    pixelsToCell(x, y) {
-        return {
-            column: Math.floor(x / this.columnSize),
-            row: Math.floor(y / this.columnSize),
-        };  
+    set rowOffset(ro) {
+        this._rowOffset = Math.min(0, ro);
     }
+}
 
-    getCursorScreenPosition(cursor, lines) {   
-        let column = cursor.column % this.ncolumns;
-        let row = Math.floor(cursor.column / this.ncolumns);
+class ScreenService {
+    constructor(screen) {
+        this.screen = screen;
+    }
+    
+    getCursorScreenPosition(cursor) {   
+        let column = cursor.column % this.screen.ncolumns;
+        let row = Math.floor(cursor.column / this.screen.ncolumns);
 
         for (let i = 0; i < cursor.row; i++) {
-            row += Math.max(1, Math.ceil(lines.getColumns(i) / this.ncolumns));
+            row += Math.max(1, Math.ceil(cursor.lines.getColumns(i) / this.screen.ncolumns));
         }
 
         return {column, row};
     }
+
+    getLinesScreenPositions(lines) {
+        let result = [];
+        for (let i = 0, row = 0; i < lines.getRows(); i++, row++) {      
+            for (let j = 0, column = 0; j < lines.getColumns(i); j++, column++) {
+                if (column !== 0 && column % this.screen.ncolumns === 0) {
+                    row++;
+                    column = 0;
+                }
+                result.push({character: lines.getCharacter(i, j), row, column});
+            }
+        }
+        return result;
+    }
+
+    cellToPixels(column, row) {
+        return {
+            x: this.screen.columnSize * column,
+            y: this.screen.rowSize * (row + this.screen.rowOffset),
+        }
+    }
+
+    adjustScreenOffset(cursor) {
+        let {row: screenRow} = this.getCursorScreenPosition(cursor);
+        if (screenRow + this.screen.rowOffset >= this.screen.nrows)
+            this.screen.rowOffset--;
+        else if (screenRow + this.screen.rowOffset < 0)
+            this.screen.rowOffset++;
+    }
 }
 
 class Drawer {
-    constructor(screen, cursor, lines) {
-        this.screen = screen;
+    constructor(screenService, cursor, lines) {
+        this.screenService = screenService;
         this.cursor = cursor;
         this.lines = lines;
     }
@@ -92,9 +122,9 @@ class Drawer {
     drawCursor() {
         fill(100);
         // bottleneck?
-        let pos = this.screen.getCursorScreenPosition(this.cursor, this.lines);
-        const {x, y} = this.screen.cellToPixels(pos.column, pos.row);
-        rect(x, y, this.screen.columnSize, this.screen.rowSize);
+        let pos = this.screenService.getCursorScreenPosition(this.cursor);
+        const {x, y} = this.screenService.cellToPixels(pos.column, pos.row);
+        rect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
     }
 
     drawLines() {
@@ -103,15 +133,10 @@ class Drawer {
         textSize(20);
         fill(255);
 
-        for (let i = 0, row = 0; i < this.lines.getRows(); i++, row++) {      
-            for (let j = 0, column = 0; j < this.lines.getColumns(i); j++, column++) {
-                if (column !== 0 && column % this.screen.ncolumns === 0) {
-                    row++;
-                    column = 0;
-                }
-                const {x, y} = this.screen.cellToPixels(column, row);
-                text(this.lines.getCharacter(i, j), x, y, this.screen.columnSize, this.screen.rowSize);
-            }
-        }
+        const lineScreenPositions = this.screenService.getLinesScreenPositions(this.lines);
+        lineScreenPositions.forEach(e => {
+            const {x, y} = this.screenService.cellToPixels(e.column, e.row);
+            text(e.character, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+        });
     }
 }

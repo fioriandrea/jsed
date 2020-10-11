@@ -1,22 +1,36 @@
 const insertKeyBindings = {
-    'ArrowUp': ({cursor}) => cursor.row--,
-    'ArrowDown': ({cursor}) => cursor.row++,
-    'ArrowLeft': ({cursor}) => cursor.column--,
-    'ArrowRight': ({cursor}) => cursor.column++,
-    'Backspace': ({cursor, lines}) => {
-            let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
-            if (lines.deleteCharacter(cursor.row, cursor.column, false)) {
-                cursor.row--;
-                cursor.column = previousLineLen;
-            } else {
-                cursor.column--;
-            }
-        },
+    'ArrowUp': ({cursor,screenService}) => {
+        cursor.row--;
+        screenService.adjustScreenOffset(cursor);
+    },
+    'ArrowDown': ({cursor, screenService}) => {
+        cursor.row++,
+        screenService.adjustScreenOffset(cursor);
+    },
+    'ArrowLeft': ({cursor, screenService}) => {
+        cursor.column--,
+        screenService.adjustScreenOffset(cursor);
+    },
+    'ArrowRight': ({cursor, screenService}) => {
+        cursor.column++,
+        screenService.adjustScreenOffset(cursor);
+    },
+    'Backspace': ({cursor, lines, screenService}) => {
+        let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
+        if (lines.deleteCharacter(cursor.row, cursor.column, false)) {
+            cursor.row--;
+            cursor.column = previousLineLen;
+        } else {
+            cursor.column--;
+        }
+        screenService.adjustScreenOffset(cursor);
+    },
     'Delete': ({cursor, lines}) => lines.deleteCharacter(cursor.row, cursor.column, true),
-    'Enter': ({cursor, lines}) => {
-            lines.insertNewLine(cursor.row, cursor.column);
-            cursor.row++;
-            cursor.column = 0;
+    'Enter': ({cursor, lines, screenService}) => {
+        lines.insertNewLine(cursor.row, cursor.column);
+        cursor.row++;
+        cursor.column = 0;
+        screenService.adjustScreenOffset(cursor);
     },
     'Control': () => {},
     'Alt': () => {},
@@ -45,9 +59,10 @@ const insertKeyControl = (key, editor) => {
     if (insertKeyBindings[key]) {
         insertKeyBindings[key](editor);
     } else {
-        let {cursor, lines} = editor;
+        let {cursor, lines, screenService} = editor;
         lines.insertCharacters(cursor.row, cursor.column, key);
         cursor.column++;
+        screenService.adjustScreenOffset(cursor);
     }
 };
 
