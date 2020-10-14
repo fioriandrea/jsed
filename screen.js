@@ -164,13 +164,13 @@ class Drawer {
     drawLineNumbers() {
         this.numberDrawData
         .forEach((e, i) => {
-            const {x, y} = this.screenService.cellToPixels(i === this.editor.cursor.row ? 1 : 0, e);
+            const {x, y} = this.screenService.cellToPixels(i === this.editor.cursor.row ? 0 : 1, e);
             text(i, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         });
     }
 
     drawTildes() {
-        let tildeIndex = this.numberDrawData[this.numberDrawData.length - 1] + (this.lineDrawData.length ? this.lineDrawData[this.lineDrawData.length - 1].position.row : 0) + 1;
+        let tildeIndex = this.numberDrawData[this.numberDrawData.length - 1] + 1; 
         while (tildeIndex < this.screenService.screen.nrows) {
             const {x, y} = this.screenService.cellToPixels(0, tildeIndex++);
             text('~', x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
