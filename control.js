@@ -7,11 +7,15 @@ class KeyChordControl {
     keyPressed(key, editor) {
         this.keyBuffer.push(key);
         let node = this.keyChords.getNode(this.keyBuffer);
-        if (node && node.payload) {
+        if (!node) {
+            this.cleanBuffer();
+        } else if (node.payload) {
             node.payload(editor);
             if (isObjEmpty(node.sons))
                 this.cleanBuffer();
         }
+
+        return node;
     }
 
     cleanBuffer() {
@@ -34,4 +38,22 @@ class InsertControl {
     }
 }
 
-const insertControl = new InsertControl();
+class NormalControl {
+    constructor(delay=1000) {
+        this.timeout = new Timeout(delay);
+        this.keyChordControl = new KeyChordControl(normalKeyChords);
+    }
+
+    keyPressed(key, editor) {
+        if (!this.timeout.output()) {
+            this.timeout.reset();
+            this.keyChordControl.cleanBuffer();
+        }
+        this.keyChordControl.keyPressed(key, editor);
+    }
+}
+
+const controls = {
+    'insert': new InsertControl(),
+    'normal': new NormalControl(1000),
+};

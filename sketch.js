@@ -23,7 +23,7 @@ function setup() {
 
     blinker = new Blinker(2000);
     window.addEventListener("keydown", e => {
-        insertControl.keyPressed(e.key, editor);
+        controls[editor.mode].keyPressed(e.key, editor);
     });
 }
 
