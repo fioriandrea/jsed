@@ -162,6 +162,7 @@ class Drawer {
     }
 
     drawLineNumbers() {
+        fill(numberColor);
         this.numberDrawData
         .forEach((e, i) => {
             const {x, y} = this.screenService.cellToPixels(i === this.editor.cursor.row ? 0 : 1, e);
@@ -170,6 +171,7 @@ class Drawer {
     }
 
     drawTildes() {
+        fill(tildeColor);
         let tildeIndex = this.numberDrawData[this.numberDrawData.length - 1] + 1; 
         while (tildeIndex < this.screenService.screen.nrows) {
             const {x, y} = this.screenService.cellToPixels(0, tildeIndex++);
@@ -178,8 +180,7 @@ class Drawer {
     }
 
     drawCursor() {
-        fill(100);
-        // bottleneck?
+        fill(cursorColor);
         const {x, y} = this.screenService.cellToPixels(this.cursorDrawData.column, this.cursorDrawData.row);
         rect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
     }
@@ -187,8 +188,8 @@ class Drawer {
     drawLines() {
         textFont("monospace");
         textAlign(LEFT, CENTER);
-        textSize(20);
-        fill(255);
+        textSize(baseFontSize);
+        fill(textColor);
 
         this.lineDrawData.forEach(e => {
             const {x, y} = this.screenService.cellToPixels(e.position.column, e.position.row);

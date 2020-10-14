@@ -54,5 +54,5 @@ class NormalControl {
 
 const controls = {
     'insert': new InsertControl(),
-    'normal': new NormalControl(1000),
+    'normal': new NormalControl(chordDelay),
 };

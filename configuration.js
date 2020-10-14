@@ -1,3 +1,16 @@
+const cursorColor = 'rgb(255, 255, 255)';
+const backgroundColor = 'rgb(0, 0, 0)';
+const textColor = 'rgb(255, 255, 255)';
+const tildeColor = 'rgb(200, 200, 200)';
+const numberColor = 'rgb(255, 255, 255)';
+
+const baseFontSize = 20;
+const columnSize = 13;
+const rowSize = 30;
+
+const blinkPeriod = 2000;
+const chordDelay = 1000;
+
 const insertKeyBindings = {
         'ArrowUp': ({cursor}) => cursor.row--,
         'ArrowDown': ({cursor}) => cursor.row++,

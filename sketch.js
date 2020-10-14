@@ -16,7 +16,7 @@ function setup() {
     createCanvas(windowWidth, windowHeight);
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
-    screen = new Screen(width, height, 13, 35);
+    screen = new Screen(width, height, columnSize, rowSize);
     screenService = new ScreenService(screen);
     editor = {
         lines,
@@ -26,7 +26,7 @@ function setup() {
     drawer = new Drawer(screenService, editor);
     drawer.updateDrawData(editor);
 
-    blinker = new Blinker(2000);
+    blinker = new Blinker(blinkPeriod);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
         updateScreenData();
@@ -47,7 +47,7 @@ function drawEditor() {
 }
 
 function draw() {
-    background(0);
+    background(backgroundColor);
     drawEditor();
 }
 
