@@ -94,6 +94,15 @@ class ScreenService {
         return this.fromWritableToAbsolute({column, row});
     }
 
+    getNumbersPositions(lines) {
+        let result = [];
+        for (let i = 0, row = 0; i < lines.getRows(); i++) {
+            result.push(row);
+            row += Math.max(1, Math.ceil(lines.getColumns(i) / this.screen.nwritableColumns));
+        }
+        return result;
+    }
+
     getLinesScreenPositions(lines) {
         let result = [];
         for (let i = 0, row = 0; i < lines.getRows(); i++, row++) {      
@@ -146,10 +155,11 @@ class Drawer {
     }
 
     drawLineNumbers() {
-        for (let i = 0; i < this.lines.getRows(); i++) {
-            const {x, y} = this.screenService.cellToPixels(i === this.cursor.row ? 1 : 0, i);
+        this.screenService.getNumbersPositions(lines)
+        .forEach((e, i) => {
+            const {x, y} = this.screenService.cellToPixels(i === this.cursor.row ? 1 : 0, e);
             text(i, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
-        }
+        });
     }
 
     drawCursor() {
