@@ -18,12 +18,14 @@ function setup() {
         cursor,
         mode: 'insert',
     };
-    drawer = new Drawer(screenService, cursor, lines);
+    drawer = new Drawer(screenService, editor);
+    drawer.updateDrawData(editor);
 
     blinker = new Blinker(2000);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
         screenService.adjustScreen(editor);
+        drawer.updateDrawData(editor);
     });
 }
 

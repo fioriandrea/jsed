@@ -148,16 +148,23 @@ class ScreenService {
 }
 
 class Drawer {
-    constructor(screenService, cursor, lines) {
+    constructor(screenService, editor) {
         this.screenService = screenService;
-        this.cursor = cursor;
-        this.lines = lines;
+        this.editor = editor;
+        this.updateDrawData();
+    }
+
+    updateDrawData() {
+        const {cursor, lines} = this.editor;
+        this.cursorDrawData = this.screenService.getCursorScreenPosition(cursor);
+        this.lineDrawData = this.screenService.getLinesScreenPositions(lines);
+        this.numberDrawData = this.screenService.getNumbersPositions(lines);
     }
 
     drawLineNumbers() {
-        this.screenService.getNumbersPositions(lines)
+        this.numberDrawData
         .forEach((e, i) => {
-            const {x, y} = this.screenService.cellToPixels(i === this.cursor.row ? 1 : 0, e);
+            const {x, y} = this.screenService.cellToPixels(i === this.editor.cursor.row ? 1 : 0, e);
             text(i, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         });
     }
@@ -165,8 +172,7 @@ class Drawer {
     drawCursor() {
         fill(100);
         // bottleneck?
-        let pos = this.screenService.getCursorScreenPosition(this.cursor);
-        const {x, y} = this.screenService.cellToPixels(pos.column, pos.row);
+        const {x, y} = this.screenService.cellToPixels(this.cursorDrawData.column, this.cursorDrawData.row);
         rect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
     }
 
@@ -176,8 +182,7 @@ class Drawer {
         textSize(20);
         fill(255);
 
-        const lineScreenPositions = this.screenService.getLinesScreenPositions(this.lines);
-        lineScreenPositions.forEach(e => {
+        this.lineDrawData.forEach(e => {
             const {x, y} = this.screenService.cellToPixels(e.position.column, e.position.row);
             text(e.character, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         });
