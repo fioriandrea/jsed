@@ -23,7 +23,7 @@ function setup() {
     blinker = new Blinker(2000);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
-        screenService.adjustScreenOffset(cursor);
+        screenService.adjustScreen(editor);
     });
 }
 
@@ -37,4 +37,5 @@ function draw() {
             drawer.drawCursor();
     }
     drawer.drawLines();
+    drawer.drawLineNumbers();
 }
