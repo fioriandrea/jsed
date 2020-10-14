@@ -121,9 +121,9 @@ class ScreenService {
     adjustScreenOffset({cursor}) {
         let {row: screenRow} = this.getCursorScreenPosition(cursor);
         if (screenRow + this.screen.rowOffset >= this.screen.nrows)
-            this.screen.rowOffset--;
+            this.screen.rowOffset = this.screen.nrows - screenRow - 1;
         else if (screenRow + this.screen.rowOffset < 0)
-            this.screen.rowOffset++;
+            this.screen.rowOffset = -screenRow;
     }
 
     adjustLeftPadding({lines}) {
