@@ -1,21 +1,9 @@
 const insertKeyBindings = {
-        'ArrowUp': ({cursor,screenService}) => {
-                cursor.row--;
-                screenService.adjustScreenOffset(cursor);
-        },
-        'ArrowDown': ({cursor, screenService}) => {
-                cursor.row++,
-                screenService.adjustScreenOffset(cursor);
-        },
-        'ArrowLeft': ({cursor, screenService}) => {
-                cursor.column--,
-                        screenService.adjustScreenOffset(cursor);
-        },
-        'ArrowRight': ({cursor, screenService}) => {
-                cursor.column++,
-                        screenService.adjustScreenOffset(cursor);
-        },
-        'Backspace': ({cursor, lines, screenService}) => {
+        'ArrowUp': ({cursor}) => cursor.row--,
+        'ArrowDown': ({cursor}) => cursor.row++,
+        'ArrowLeft': ({cursor}) => cursor.column--,
+        'ArrowRight': ({cursor}) => cursor.column++,
+        'Backspace': ({cursor, lines}) => {
                 let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
                 if (lines.deleteCharacter(cursor.row, cursor.column, false) === '\n') {
                         cursor.row--;
@@ -23,14 +11,12 @@ const insertKeyBindings = {
                 } else {
                         cursor.column--;
                 }
-                screenService.adjustScreenOffset(cursor);
         },
         'Delete': ({cursor, lines}) => lines.deleteCharacter(cursor.row, cursor.column, true),
-        'Enter': ({cursor, lines, screenService}) => {
+        'Enter': ({cursor, lines}) => {
                 lines.insertNewLine(cursor.row, cursor.column);
                 cursor.row++;
                 cursor.column = 0;
-                screenService.adjustScreenOffset(cursor);
         },
         'Escape': (editor) => editor.mode = 'normal',
         'Control': () => {},
@@ -58,40 +44,33 @@ insertKeyBindings['Return'] = insertKeyBindings['Enter'];
 
 const normalKeyChords = new TagTrie();
 normalKeyChords.addNode(['i'], (editor) => editor.mode = 'insert');
-normalKeyChords.addNode(['d', 'd'], ({cursor, lines, screenService}) => {
+normalKeyChords.addNode(['d', 'd'], ({cursor, lines}) => {
         lines.deleteLines(cursor.row);
         cursor.row = cursor.row;
-        screenService.adjustScreenOffset(cursor);
 });
-normalKeyChords.addNode(['k'], ({cursor, screenService}) => {
-        cursor.row--;
-        screenService.adjustScreenOffset(cursor);
-});
-normalKeyChords.addNode(['j'], ({cursor, screenService}) => {
-        cursor.row++;
-        screenService.adjustScreenOffset(cursor);
-});
-normalKeyChords.addNode(['h'], ({cursor, screenService}) => {
-        cursor.column--;
-        screenService.adjustScreenOffset(cursor);
-});
-normalKeyChords.addNode(['l'], ({cursor, screenService}) => {
-        cursor.column++;
-        screenService.adjustScreenOffset(cursor);
-});
+normalKeyChords.addNode(['k'], ({cursor}) => cursor.row--);
+normalKeyChords.addNode(['j'], ({cursor}) => cursor.row++);
+normalKeyChords.addNode(['h'], ({cursor}) => cursor.column--);
+normalKeyChords.addNode(['l'], ({cursor}) => cursor.column++);
 normalKeyChords.addNode(['o'], (editor) => {
-        const {cursor, lines, screenService} = editor;
+        const {cursor, lines} = editor;
         lines.insertLine(cursor.row + 1);
         cursor.row++;
         cursor.column = 0;
-        screenService.adjustScreenOffset(cursor);
         editor.mode = 'insert';
 });
 normalKeyChords.addNode(['Shift', 'O'], (editor) => {
-        const {cursor, lines, screenService} = editor;
+        const {cursor, lines} = editor;
         lines.insertLine(cursor.row);
         cursor.row;
         cursor.column = 0;
-        screenService.adjustScreenOffset(cursor);
-        editor.mode = 'insert'
+        editor.mode = 'insert';
+});
+normalKeyChords.addNode(['g', 'g'], ({cursor}) => {
+        cursor.row = 0;
+        cursor.column = 0;
+});
+normalKeyChords.addNode(['Shift', 'G'], ({cursor, lines}) => {
+        cursor.row = lines.getRows() - 1;
+        cursor.column = lines.getColumns(cursor.row);
 });

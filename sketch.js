@@ -16,7 +16,6 @@ function setup() {
     editor = {
         lines,
         cursor,
-        screenService,
         mode: 'insert',
     };
     drawer = new Drawer(screenService, cursor, lines);
@@ -24,6 +23,7 @@ function setup() {
     blinker = new Blinker(2000);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
+        screenService.adjustScreenOffset(cursor);
     });
 }
 

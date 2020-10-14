@@ -30,10 +30,9 @@ class InsertControl {
         if (insertKeyBindings[key]) {
             insertKeyBindings[key](editor);
         } else {
-            let {cursor, lines, screenService} = editor;
+            let {cursor, lines} = editor;
             lines.insertCharacters(cursor.row, cursor.column, key);
             cursor.column++;
-            screenService.adjustScreenOffset(cursor);
         }
     }
 }
