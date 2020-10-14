@@ -12,7 +12,7 @@ class Lines {
     }
 
     getColumns(row) {
-        return this.raw[row].length;
+        return this.raw.length ? this.raw[row].length : 0;
     }
 
     insertCharacters(row, pos, ...chars) {
@@ -44,36 +44,40 @@ class Lines {
     }
 
     deleteLines(start, count=1, forwards=true) {
-        return forwards ? this._deleteCharacterForwards(start, count) :
-            this._deleteLinesBackwards(start, count);
+        if (this.raw.length === 1) {
+            let toReturn = this.raw[0];
+            this.raw[0] = [];
+            return toReturn;
+        } else {
+            return forwards ? this._deleteLinesForwards(start, count) :
+                this._deleteLinesBackwards(start, count);
+        }
     }
 
     _deleteCharacterForwards(row, start) {
         if (this.raw[row].length === start) {
             this.joinRows(row, row + 1);
-            return true;
+            return '\n';
         } else {
-            this.raw[row].splice(start, 1);
-            return false;
+            return this.raw[row].splice(start, 1);
         }
     }
 
     _deleteCharacterBackwards(row, start) {
         if (start === 0) {
             this.joinRows(row - 1, row);
-            return true;
+            return '\n';
         } else {
-            this.raw[row].splice(start - 1, 1);
-            return false;
+            return this.raw[row].splice(start - 1, 1);
         }
     }
 
     _deleteLinesForwards(start, count=1) {
-        this.raw.splice(start, count);
+        return this.raw.splice(start, count);
     }
 
     _deleteLinesBackwards(start, count=1) {
-        this.raw.splice(start - count, count);
+        return this.raw.splice(start - count, count);
     }
 }
 
