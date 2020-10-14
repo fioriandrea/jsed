@@ -90,7 +90,7 @@ class TagTrie {
         let node = this.raw;
 
         while (i < path.length) {
-            let dummy = node[path[i]];
+            let dummy = node.sons[path[i]];
             if (!dummy)
                 break;
             node = dummy;
