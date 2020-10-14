@@ -2,6 +2,7 @@ let lines;
 let cursor;
 let screen;
 let screenService;
+let editor;
 let drawer;
 
 let blinker;
@@ -12,10 +13,18 @@ function setup() {
     cursor = new Cursor(lines, 0, 0);
     screen = new Screen(width, height, 47, 13);
     screenService = new ScreenService(screen);
+    editor = {
+        lines,
+        cursor,
+        screenService,
+        mode: 'insert',
+    };
     drawer = new Drawer(screenService, cursor, lines);
 
     blinker = new Blinker(2000);
-    window.addEventListener("keydown", e => insertKeyControl(e.key, {cursor, lines, screenService}));
+    window.addEventListener("keydown", e => {
+        insertControl.keyPressed(e.key, editor);
+    });
 }
 
 function draw() {
