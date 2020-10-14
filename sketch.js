@@ -7,11 +7,16 @@ let drawer;
 
 let blinker;
 
+function updateScreenData() {
+    screenService.adjustScreen(editor);
+    drawer.updateDrawData(editor);
+}
+
 function setup() {
-    createCanvas(600, 400);
+    createCanvas(windowWidth, windowHeight);
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
-    screen = new Screen(width, height, 47, 13);
+    screen = new Screen(width, height, 13, 35);
     screenService = new ScreenService(screen);
     editor = {
         lines,
@@ -24,13 +29,11 @@ function setup() {
     blinker = new Blinker(2000);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
-        screenService.adjustScreen(editor);
-        drawer.updateDrawData(editor);
+        updateScreenData();
     });
 }
 
-function draw() {
-    background(0);
+function drawEditor() {
     if (keyIsPressed) {
         blinker.reset();
         drawer.drawCursor();
@@ -41,4 +44,17 @@ function draw() {
     drawer.drawLines();
     drawer.drawLineNumbers();
     drawer.drawTildes();
+}
+
+function draw() {
+    background(0);
+    drawEditor();
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    screen.width = windowWidth;
+    screen.height = windowHeight;
+    updateScreenData();
+    drawEditor();
 }

@@ -1,17 +1,17 @@
 class Screen {
-    constructor(width, height, ncolumns, nrows) {
+    constructor(width, height, columnSize, rowSize) {
         this._width = width;
         this._height = height;
-        this._ncolumns = ncolumns;
-        this._nrows = nrows;
+        this._columnSize = columnSize;
+        this._rowSize = rowSize;
         this._rowOffset = 0;
         this.leftPadding = 3;
-        this._computeSize();
+        this._computeNumberOfCells();
     }
 
-    _computeSize() {
-        this._columnSize = this._width / this._ncolumns;
-        this._rowSize = this._height / this._nrows;
+    _computeNumberOfCells() {
+        this._ncolumns = Math.floor(this._width / this._columnSize);
+        this._nrows = Math.floor(this._height / this._rowSize);
     }
 
     get nwritableColumns() {
@@ -24,7 +24,7 @@ class Screen {
 
     set width(w) {
         this._width = w;
-        this._computeSize();
+        this._computeNumberOfCells();
     }
 
     get height() {
@@ -33,33 +33,33 @@ class Screen {
 
     set height(h) {
         this._height = h;
-        this._computeSize();
+        this._computeNumberOfCells();
     }
 
     get ncolumns() {
         return this._ncolumns;
     }
 
-    set ncolumns(n) {
-        this._ncolumns = n;
-        this._computeSize();
-    }
-
     get nrows() {
         return this._nrows;
-    }
-
-    set nrows(n) {
-        this._nrows = n;
-        this._computeSize();
     }
 
     get rowSize() {
         return this._rowSize;
     }
 
+    set rowSize(rs) {
+        this._rowSize = rs;
+        this._computeNumberOfCells();
+    }
+
     get columnSize() {
         return this._columnSize;
+    }
+
+    set columnSize(cs) {
+        this._columnSize = cs;
+        this._computeNumberOfCells();
     }
 
     get rowOffset() {
