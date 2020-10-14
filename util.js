@@ -66,8 +66,8 @@ class CoolDown {
 }
 
 class TagTrie {
-    constructor(raw={}) {
-        this.raw = raw;
+    constructor() {
+        this.raw = this._makeEmptyNode();
     }
 
     _makeEmptyNode() {
@@ -77,10 +77,10 @@ class TagTrie {
     }
 
     getNode(path) {
-        let node = this.raw[path[0]];
+        let node = this.raw.sons[path[0]];
 
         for (let i = 1; i < path.length && node !== undefined; i++)
-            node = node[path[i]];
+            node = node.sons[path[i]];
         
         return node;
     }
@@ -88,11 +88,13 @@ class TagTrie {
     addNode(path, payload=undefined) {
         let i = 0;
         let node = this.raw;
-        let dummy = previous[path[i++]];
 
-        while (i < path.length && dummy !== undefined) {
+        while (i < path.length) {
+            let dummy = node[path[i]];
+            if (!dummy)
+                break;
             node = dummy;
-            dummy = node[path[i++]];
+            i++;
         }
 
         while (i < path.length) {
