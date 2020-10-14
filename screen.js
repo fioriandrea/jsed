@@ -136,7 +136,7 @@ class ScreenService {
     }
 
     adjustLeftPadding({lines}) {
-        let lineNumberDigits = `${lines.getRows()}`.length;
+        let lineNumberDigits = `${lines.getRows() - 1}`.length;
         this.screen.leftPadding = lineNumberDigits + 2;
     }
 
