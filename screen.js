@@ -169,6 +169,14 @@ class Drawer {
         });
     }
 
+    drawTildes() {
+        let tildeIndex = this.numberDrawData[this.numberDrawData.length - 1] + (this.lineDrawData.length ? this.lineDrawData[this.lineDrawData.length - 1].position.row : 0) + 1;
+        while (tildeIndex < this.screenService.screen.nrows) {
+            const {x, y} = this.screenService.cellToPixels(0, tildeIndex++);
+            text('~', x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+        }
+    }
+
     drawCursor() {
         fill(100);
         // bottleneck?

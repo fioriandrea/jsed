@@ -40,4 +40,5 @@ function draw() {
     }
     drawer.drawLines();
     drawer.drawLineNumbers();
+    drawer.drawTildes();
 }
