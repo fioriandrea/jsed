@@ -43,6 +43,11 @@ class Lines {
          this._deleteCharacterBackwards(row, start);
     }
 
+    deleteLines(start, count=1, forwards=true) {
+        return forwards ? this._deleteCharacterForwards(start, count) :
+            this._deleteLinesBackwards(start, count);
+    }
+
     _deleteCharacterForwards(row, start) {
         if (this.raw[row].length === start) {
             this.joinRows(row, row + 1);
@@ -61,6 +66,14 @@ class Lines {
             this.raw[row].splice(start - 1, 1);
             return false;
         }
+    }
+
+    _deleteLinesForwards(start, count=1) {
+        this.raw.splice(start, count);
+    }
+
+    _deleteLinesBackwards(start, count=1) {
+        this.raw.splice(start - count, count);
     }
 }
 

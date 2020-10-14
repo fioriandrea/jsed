@@ -1,3 +1,5 @@
+const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === Object;
+
 const milliseconds = () => window.performance.now();
 
 class Blinker {
@@ -60,5 +62,52 @@ class CoolDown {
         } else {
             return 0;
         }
+    }
+}
+
+class TagTrie {
+    constructor(raw={}) {
+        this.raw = raw;
+    }
+
+    _makeEmptyNode() {
+        return {
+            sons: {},
+        };
+    }
+
+    getNode(path) {
+        let node = this.raw[path[0]];
+
+        for (let i = 1; i < path.length && node !== undefined; i++)
+            node = node[path[i]];
+        
+        return node;
+    }
+
+    addNode(path, payload=undefined) {
+        let i = 0;
+        let node = this.raw;
+        let dummy = previous[path[i++]];
+
+        while (i < path.length && dummy !== undefined) {
+            node = dummy;
+            dummy = node[path[i++]];
+        }
+
+        while (i < path.length) {
+            node.sons[path[i]] = this._makeEmptyNode();
+            node = node.sons[path[i++]];
+        }
+
+        node.payload = payload;
+
+        return node;
+    }
+
+    setPayload(path, payload) {
+        let node = this.getNode(path);
+        if (node !== undefined)
+            node.payload = payload;
     }
 }
