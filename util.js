@@ -1,5 +1,7 @@
 const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === Object;
 
+const isSpace = char => char === ' '  || char === '\n' || char === '\t' || char === '\r' || char === '\b';
+
 const milliseconds = () => window.performance.now();
 
 class Blinker {

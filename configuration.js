@@ -59,12 +59,45 @@ const normalKeyChords = new TagTrie();
 normalKeyChords.addNode(['i'], (editor) => editor.mode = 'insert');
 normalKeyChords.addNode(['d', 'd'], ({cursor, lines}) => {
         lines.deleteLines(cursor.row);
-        cursor.row = cursor.row;
+        cursor.handleEdges();
+});
+normalKeyChords.addNode(['d', 'w'], ({cursor, lines}) => {
+        lines.deleteWord(cursor.row, cursor.column, true);
+});
+normalKeyChords.addNode(['d', 'b'], ({cursor, lines}) => {
+        lines.deleteWord(cursor.row, cursor.column, false);
+        cursor.handleEdges();
 });
 normalKeyChords.addNode(['k'], ({cursor}) => cursor.row--);
 normalKeyChords.addNode(['j'], ({cursor}) => cursor.row++);
 normalKeyChords.addNode(['h'], ({cursor}) => cursor.column--);
 normalKeyChords.addNode(['l'], ({cursor}) => cursor.column++);
+normalKeyChords.addNode(['x'], ({cursor, lines}) => {
+        lines.deleteCharacter(cursor.row, cursor.column, true);
+});
+normalKeyChords.addNode(['s'], (editor) => {
+        const {cursor, lines} = editor;
+        lines.deleteCharacter(cursor.row, cursor.column, true);
+        editor.mode = 'insert';
+});
+normalKeyChords.addNode(['a'], (editor) => {
+        editor.cursor.column++;
+        editor.mode = 'insert';
+});
+normalKeyChords.addNode(['^'], ({cursor}) => {
+        cursor.column = 0;
+});
+normalKeyChords.addNode(['$'], ({cursor, lines}) => {
+        cursor.column = lines.getColumns(cursor.row);
+});
+normalKeyChords.addNode(['I'], (editor) => {
+        normalKeyChords.getNode(['^']).payload(editor);
+        editor.mode = 'insert';
+});
+normalKeyChords.addNode(['A'], (editor) => {
+        normalKeyChords.getNode(['$']).payload(editor);
+        editor.mode = 'insert';
+});
 normalKeyChords.addNode(['o'], (editor) => {
         const {cursor, lines} = editor;
         lines.insertLine(cursor.row + 1);
@@ -72,7 +105,7 @@ normalKeyChords.addNode(['o'], (editor) => {
         cursor.column = 0;
         editor.mode = 'insert';
 });
-normalKeyChords.addNode(['Shift', 'O'], (editor) => {
+normalKeyChords.addNode(['O'], (editor) => {
         const {cursor, lines} = editor;
         lines.insertLine(cursor.row);
         cursor.row;
@@ -83,7 +116,7 @@ normalKeyChords.addNode(['g', 'g'], ({cursor}) => {
         cursor.row = 0;
         cursor.column = 0;
 });
-normalKeyChords.addNode(['Shift', 'G'], ({cursor, lines}) => {
+normalKeyChords.addNode(['G'], ({cursor, lines}) => {
         cursor.row = lines.getRows() - 1;
         cursor.column = lines.getColumns(cursor.row);
 });

@@ -54,6 +54,29 @@ class Lines {
         }
     }
 
+    deleteWord(row, column, forwards=true) {
+        return forwards ? this._deleteWordForwards(row, column) :
+            this._deleteWordBackwards(row, column);
+    }
+
+    _deleteWordForwards(row, column) {
+        let original = column;
+
+        while (column < this.getColumns(row) && !isSpace(this.getCharacter(row, column))) 
+            column++;
+        
+        return this.raw[row].splice(original, column - original);
+    }
+
+    _deleteWordBackwards(row, column) {
+        let original = column;
+
+        while (column > 0 && !isSpace(this.getCharacter(row, column - 1))) 
+            column--;
+        
+        return this.raw[row].splice(column, original - column);
+    }
+
     _deleteCharacterForwards(row, start) {
         if (this.raw[row].length === start) {
             this.joinRows(row, row + 1);
@@ -86,7 +109,7 @@ class Cursor {
         this.lines = lines;
         this._column = column;
         this._row = row;
-        this._handleEdges();
+        this.handleEdges();
     }
 
     get row() {
@@ -95,7 +118,7 @@ class Cursor {
 
     set row(r) {
         this._row = r;
-        this._handleEdges();
+        this.handleEdges();
     }
 
     get column() {
@@ -104,10 +127,10 @@ class Cursor {
 
     set column(c) {
         this._column = c;
-        this._handleEdges();
+        this.handleEdges();
     }
 
-    _handleEdges() {
+    handleEdges() {
         this._row = Math.max(this._row, 0);
         this._row = Math.min(this._row, this.lines.getRows() - 1);
         this._column = Math.max(this._column, 0);
