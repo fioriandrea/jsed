@@ -9,7 +9,6 @@ let blinker;
 
 function updateScreenData() {
     screenService.adjustScreen(editor);
-    drawer.updateDrawData(editor);
 }
 
 function setup() {
@@ -17,14 +16,13 @@ function setup() {
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
     screen = new Screen(width, height, columnSize, rowSize);
-    screenService = new ScreenService(screen);
     editor = {
         lines,
         cursor,
         mode: 'insert',
     };
+    screenService = new ScreenService(screen, editor);
     drawer = new Drawer(screenService, editor);
-    drawer.updateDrawData(editor);
 
     blinker = new Blinker(blinkPeriod);
     window.addEventListener("keydown", e => {

@@ -62,7 +62,7 @@ normalKeyChords.addNode(['d', 'd'], ({cursor, lines}) => {
         cursor.handleEdges();
 });
 normalKeyChords.addNode(['d', 'w'], ({cursor, lines}) => {
-        lines.deleteWord(cursor.row, cursor.column, true);
+        lines.deleteWords(cursor.row, cursor.column, 1, true);
 });
 normalKeyChords.addNode(['d', 'b'], ({cursor, lines}) => {
         lines.deleteWord(cursor.row, cursor.column, false);

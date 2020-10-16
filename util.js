@@ -115,3 +115,21 @@ class TagTrie {
             node.payload = payload;
     }
 }
+
+class Observable {
+    constructor() {
+        this.observers = [];
+    }
+
+    addObserver(obs) {
+        this.observers.push(obs);
+    }
+
+    removeObserver(obj) {
+        this.observers = this.observers.filter(o => o !== obj);
+    }
+
+    notifyAll(payload) {
+        this.observers.forEach(o => o.respondToNotify(payload));
+    }
+}

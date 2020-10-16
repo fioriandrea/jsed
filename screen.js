@@ -14,6 +14,14 @@ class Screen {
         this._nrows = Math.floor(this._height / this._rowSize);
     }
 
+    get firstWritableRow() {
+        return -this._rowOffset;
+    }
+
+    get lastWritableRow() {
+        return -this._rowOffset + this._nrows - 1;
+    }
+
     get nwritableColumns() {
         return this.ncolumns - this.leftPadding;
     }
@@ -71,9 +79,92 @@ class Screen {
     }
 }
 
-class ScreenService {
-    constructor(screen) {
+class ScreenLines {
+    constructor(screen, lines) {
         this.screen = screen;
+        this.lines = lines;
+        this.lines.addObserver(this);
+        this.raw = this.computeRaw();
+    }
+
+    getSpanningLines(row) {
+        return this.raw[row][1] - this.raw[row][0] + 1;
+    }    
+
+    findRowContainingScreenRow(sr) {
+        let left = 0;
+        let right = this.raw.length - 1;
+        let middle = (left + right) >>> 1;
+
+        while (left <= right) {
+            if (this.raw[middle][0] > sr) 
+                right = middle - 1;
+            else if (this.raw[middle][1] < sr)
+                left = middle + 1;
+            else 
+                return middle;
+            middle = (left + right) >>> 1;
+        }
+
+        return -1;
+    }
+
+    computeScreenLine(row) {
+        let start = row === 0 ? 0 : this.raw[row - 1][1] + 1;
+        return [start, Math.floor(this.lines.getRow(row).length / this.screen.nwritableColumns) + start];
+    }
+
+    computeRaw() {
+        this.raw = [];
+        for (let i = 0; i < this.lines.getRows(); i++)
+            this.raw.push(this.computeScreenLine(i));
+        return this.raw;
+    }
+
+    respondToNotify(payload) {
+        this.modify(payload.modify);
+        this.delete(payload.delete);
+        this.insert(payload.insert);
+    }
+
+    modify(rows) {
+        if (!rows)
+            return;
+        rows.forEach(e => this.raw[e] = this.computeScreenLine(e));
+    }
+
+    delete(rows) {
+        if (!rows)
+            return;
+        rows.forEach(e => {
+            let spanningLines = this.getSpanningLines(e);
+            for (let i = e + 1; i < this.raw.length; i++) {
+                this.raw[i][0] -= spanningLines;
+                this.raw[i][1] -= spanningLines;
+            }
+            this.raw.splice(e, 1)
+        });
+    }
+
+    insert(rows) {
+        if (!rows)
+            return;
+        rows.forEach(e => {
+            this.raw.splice(e, 0, this.computeScreenLine(e))
+            let spanningLines = this.getSpanningLines(e);
+            for (let i = e + 1; i < this.raw.length; i++) {
+                this.raw[i][0] += spanningLines;
+                this.raw[i][1] += spanningLines;
+            }
+        });
+    }
+}
+
+class ScreenService {
+    constructor(screen, editor) {
+        this.screen = screen;
+        this.editor = editor;
+        this.screenLines = new ScreenLines(screen, editor.lines);
     }
 
     fromWritableToAbsolute({row, column}) {
@@ -83,36 +174,39 @@ class ScreenService {
         }
     }
     
-    getCursorScreenPosition(cursor) {   
+    getCursorScreenPosition() {
+        let [startLine, endLine] = this.screenLines.raw[this.editor.cursor.row];
         let column = cursor.column % this.screen.nwritableColumns;
-        let row = Math.floor(cursor.column / this.screen.nwritableColumns);
-
-        for (let i = 0; i < cursor.row; i++) {
-            row += Math.max(1, Math.ceil(cursor.lines.getColumns(i) / this.screen.nwritableColumns));
-        }
+        let row = startLine + Math.floor(this.editor.cursor.column / this.screen.nwritableColumns);
 
         return this.fromWritableToAbsolute({column, row});
     }
 
-    getNumbersPositions(lines) {
+    getNumbersPositions() {
+        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
+        let lastRow = this.screenLines.raw.length - 1;
         let result = [];
-        for (let i = 0, row = 0; i < lines.getRows(); i++) {
-            result.push(row);
-            row += Math.max(1, Math.ceil(lines.getColumns(i) / this.screen.nwritableColumns));
+        for (let i = firstRow; i <= lastRow && this.screenLines.raw[i][0] <= this.screen.lastWritableRow; i++) {
+            result.push({
+                screenRow: this.screenLines.raw[i][0],
+                row: i,
+            });
         }
         return result;
     }
 
-    getLinesScreenPositions(lines) {
+    getLinesScreenPositions() {
+        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
+        let lastRow = this.screenLines.raw.length - 1;
         let result = [];
-        for (let i = 0, row = 0; i < lines.getRows(); i++, row++) {      
-            for (let j = 0, column = 0; j < lines.getColumns(i); j++, column++) {
+        for (let i = firstRow; i <= lastRow && this.screenLines.raw[i][0] <= this.screen.lastWritableRow; i++) {
+            for (let j = 0, column = 0, row = this.screenLines.raw[i][0]; j < this.editor.lines.getColumns(i) && row <= this.screen.lastWritableRow; j++, column++) {
                 if (column !== 0 && column % this.screen.nwritableColumns === 0) {
                     row++;
                     column = 0;
                 }
                 result.push({
-                    character: lines.getCharacter(i, j),
+                    character: this.editor.lines.getCharacter(i, j),
                     position: this.fromWritableToAbsolute({row, column}),
                 });
             }
@@ -151,29 +245,23 @@ class Drawer {
     constructor(screenService, editor) {
         this.screenService = screenService;
         this.editor = editor;
-        this.updateDrawData();
-    }
-
-    updateDrawData() {
-        const {cursor, lines} = this.editor;
-        this.cursorDrawData = this.screenService.getCursorScreenPosition(cursor);
-        this.lineDrawData = this.screenService.getLinesScreenPositions(lines);
-        this.numberDrawData = this.screenService.getNumbersPositions(lines);
     }
 
     drawLineNumbers() {
         fill(numberColor);
-        this.numberDrawData
-        .forEach((e, i) => {
-            const {x, y} = this.screenService.cellToPixels(i === this.editor.cursor.row ? 0 : 1, e);
-            text(i, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+        let numberDrawData = this.screenService.getNumbersPositions();
+        numberDrawData
+        .forEach(e => {
+            const {x, y} = this.screenService.cellToPixels(e.row === this.editor.cursor.row ? 0 : 1, e.screenRow);
+            text(e.row, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         });
     }
 
     drawTildes() {
         fill(tildeColor);
-        let tildeIndex = this.numberDrawData[this.numberDrawData.length - 1] + 1; 
-        while (tildeIndex < this.screenService.screen.nrows) {
+        let numberDrawData = this.screenService.getNumbersPositions();
+        let tildeIndex = numberDrawData[numberDrawData.length - 1].screenRow + 1; 
+        while (tildeIndex <= this.screenService.screen.lastWritableRow) {
             const {x, y} = this.screenService.cellToPixels(0, tildeIndex++);
             text('~', x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         }
@@ -181,7 +269,8 @@ class Drawer {
 
     drawCursor() {
         fill(cursorColor);
-        const {x, y} = this.screenService.cellToPixels(this.cursorDrawData.column, this.cursorDrawData.row);
+        const {column, row} = this.screenService.getCursorScreenPosition();
+        const {x, y} = this.screenService.cellToPixels(column, row);
         rect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
     }
 
@@ -191,7 +280,8 @@ class Drawer {
         textSize(baseFontSize);
         fill(textColor);
 
-        this.lineDrawData.forEach(e => {
+        let lineDrawData = this.screenService.getLinesScreenPositions();
+        lineDrawData.forEach(e => {
             const {x, y} = this.screenService.cellToPixels(e.position.column, e.position.row);
             text(e.character, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
         });

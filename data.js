@@ -1,5 +1,6 @@
-class Lines {
+class Lines extends Observable {
     constructor(raw=[[]]) {
+        super();
         this.raw = raw;
     }
 
@@ -11,16 +12,26 @@ class Lines {
         return this.raw.length;
     }
 
+    getRow(i) {
+        return this.raw[i];
+    }
+
     getColumns(row) {
         return this.raw.length ? this.raw[row].length : 0;
     }
 
     insertCharacters(row, pos, ...chars) {
         this.raw[row].splice(pos, 0, ...chars);
+        this.notifyAll({
+            modify: [row],
+        });
     }
 
     insertLine(row, chars=[]) {
         this.raw.splice(row, 0, chars);
+        this.notifyAll({
+            insert: [row],
+        });
     }
     
     insertNewLine(row, pos) {
@@ -29,6 +40,9 @@ class Lines {
             this.raw[row + 1].push(this.raw[row][i]);
         }
         this.raw[row].splice(pos);
+        this.notifyAll({
+            modify: [row, row + 1],
+        });
     }
 
     joinRows(row0, row1) {
@@ -36,76 +50,103 @@ class Lines {
             return;
         this.raw[row0].push(...this.raw[row1]);
         this.raw.splice(row1, 1);
+        this.notifyAll({
+            modify: [row0],
+            delete: [row1],
+        });
     }
 
     deleteCharacter(row, start, forwards=true) {
-        return forwards ? this._deleteCharacterForwards(row, start) :
+        const toReturn = forwards ? this._deleteCharacterForwards(row, start) :
          this._deleteCharacterBackwards(row, start);
+        return toReturn;
     }
 
     deleteLines(start, count=1, forwards=true) {
+        let toReturn;
         if (this.raw.length === 1) {
-            let toReturn = this.raw[0];
+            toReturn = this.raw[0];
             this.raw[0] = [];
-            return toReturn;
+            this.notifyAll({
+                modify: [0],
+            });
         } else {
-            return forwards ? this._deleteLinesForwards(start, count) :
+            toReturn = forwards ? this._deleteLinesForwards(start, count) :
                 this._deleteLinesBackwards(start, count);
         }
+        return toReturn;
     }
 
-    deleteWord(row, column, forwards=true) {
-        return forwards ? this._deleteWordForwards(row, column) :
-            this._deleteWordBackwards(row, column);
+    deleteWords(row, column, count=1, forwards=true) {
+        let toReturn = [];
+        while (count-- > 0)
+            toReturn.push(...this._deleteWordStep(row, column, forwards ? 1 : -1));
+        this.notifyAll({
+            modify: [row],
+        });
+        return toReturn;
     }
 
-    _deleteWordForwards(row, column) {
+    _deleteWordStep(row, column, step) {
         let original = column;
 
-        while (column < this.getColumns(row) && !isSpace(this.getCharacter(row, column))) 
-            column++;
+        while (column < this.getColumns(row) && column >= 0 && !isSpace(this.getCharacter(row, column))) 
+            column += step;
+        while (column < this.getColumns(row) && column >= 0 && isSpace(this.getCharacter(row, column))) 
+            column += step;
         
-        return this.raw[row].splice(original, column - original);
-    }
+        return this.raw[row].splice(original, Math.abs(column - original));
 
-    _deleteWordBackwards(row, column) {
-        let original = column;
-
-        while (column > 0 && !isSpace(this.getCharacter(row, column - 1))) 
-            column--;
-        
-        return this.raw[row].splice(column, original - column);
     }
 
     _deleteCharacterForwards(row, start) {
+        let toReturn;
         if (this.raw[row].length === start) {
             this.joinRows(row, row + 1);
-            return '\n';
+            toReturn = '\n';
         } else {
-            return this.raw[row].splice(start, 1);
+            toReturn = this.raw[row].splice(start, 1);
+            this.notifyAll({
+                modify: [row],
+            });
         }
+        return toReturn;
     }
 
     _deleteCharacterBackwards(row, start) {
+        let toReturn;
         if (start === 0) {
             this.joinRows(row - 1, row);
-            return '\n';
+            toReturn = '\n';
         } else {
-            return this.raw[row].splice(start - 1, 1);
+            toReturn = this.raw[row].splice(start - 1, 1);
+            this.notifyAll({
+                modify: [row],
+            });
         }
+        return toReturn;
     }
 
     _deleteLinesForwards(start, count=1) {
-        return this.raw.splice(start, count);
+        let toReturn = this.raw.splice(start, count);
+        this.notifyAll({
+            delete: new Array(count).fill(0).map((e, i) => i + start),
+        });
+        return toReturn;
     }
 
     _deleteLinesBackwards(start, count=1) {
-        return this.raw.splice(start - count, count);
+        let toReturn = this.raw.splice(start - count, count);
+        this.notifyAll({
+            delete: new Array(count).fill(0).map((e, i) => start - i),
+        });
+        return toReturn;
     }
 }
 
-class Cursor {
+class Cursor extends Observable {
     constructor(lines, column=0, row=0) {
+        super();
         this.lines = lines;
         this._column = column;
         this._row = row;
@@ -117,8 +158,11 @@ class Cursor {
     }
 
     set row(r) {
+        let original = this._row;
         this._row = r;
         this.handleEdges();
+        if (original !== this._row)
+            this.notifyAll();
     }
 
     get column() {
@@ -126,8 +170,11 @@ class Cursor {
     }
 
     set column(c) {
+        let original = this._column;
         this._column = c;
         this.handleEdges();
+        if (original !== this._column)
+            this.notifyAll();
     }
 
     handleEdges() {
