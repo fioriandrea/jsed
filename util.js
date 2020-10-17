@@ -1,8 +1,42 @@
+const getWindowWidth = () => window.innerWidth;
+
+const getWindowHeight = () => window.innerHeight;
+
+const devicePixelRatio = () => window.devicePixelRatio;
+
+const appendCanvas = (parent) => {
+    parent = parent || document.querySelector('body');
+    let canvas = document.createElement('canvas');
+    parent.appendChild(canvas);
+    return canvas;
+};
+
 const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === Object;
 
 const isSpace = char => char === ' '  || char === '\n' || char === '\t' || char === '\r' || char === '\b';
 
 const milliseconds = () => window.performance.now();
+
+class HRCanvas {
+    constructor(canvas, width, height) {
+        this.canvas = canvas;
+        this.setSize(width, height);
+    }
+
+    get context2d() {
+        return this.canvas.getContext('2d');
+    }
+
+    setSize(width, height) {
+        this.canvas.width = width * devicePixelRatio();
+        this.canvas.height = height * devicePixelRatio();
+        this.canvas.style.width = `${width}px`;
+        this.canvas.style.height = `${height}px`;
+        this.context2d.setTransform(devicePixelRatio(), 0, 0, devicePixelRatio(), 0, 0);
+        this.width = width;
+        this.height = height;
+    }
+}
 
 class Blinker {
     constructor(period, dutyCycle=0.5, startOn=true) {
@@ -113,6 +147,29 @@ class TagTrie {
         let node = this.getNode(path);
         if (node !== undefined)
             node.payload = payload;
+    }
+}
+
+class KeyRecorder {
+    constructor() {
+        this.key = null;
+    }
+
+    keyDown(e) {
+        this.key = e.key;
+    }
+
+    keyUp(e) {
+        this.key = null;
+    }
+
+    isKeyDown() {
+        return this.key !== null;
+    }
+
+    bind(element) {
+        element.addEventListener('keydown', e => this.keyDown(e));
+        element.addEventListener('keyup', e => this.keyUp(e));
     }
 }
 

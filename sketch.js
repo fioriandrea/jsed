@@ -6,33 +6,51 @@ let editor;
 let drawer;
 
 let blinker;
+let keyRecorder;
+
+let hrcanvas;
 
 function updateScreenData() {
     screenService.adjustScreen(editor);
 }
 
+function windowResized() {
+    hrcanvas.setSize(getWindowWidth(), getWindowHeight());
+    screen.width = getWindowWidth();
+    screen.height = getWindowHeight();
+    updateScreenData();
+    drawEditor();
+}
+
 function setup() {
-    createCanvas(windowWidth, windowHeight);
+    hrcanvas = new HRCanvas(appendCanvas(), getWindowWidth(), getWindowHeight());
+
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
-    screen = new Screen(width, height, columnSize, rowSize);
+    screen = new Screen(hrcanvas.width, hrcanvas.height, columnSize, rowSize);
     editor = {
         lines,
         cursor,
         mode: 'insert',
     };
     screenService = new ScreenService(screen, editor);
-    drawer = new Drawer(screenService, editor);
+    drawer = new Drawer(screenService, editor, hrcanvas);
 
     blinker = new Blinker(blinkPeriod);
+    keyRecorder = new KeyRecorder();
+    keyRecorder.bind(window);
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
         updateScreenData();
     });
+    window.addEventListener("resize", windowResized);
 }
 
 function drawEditor() {
-    if (keyIsPressed) {
+    hrcanvas.context2d.fillStyle = backgroundColor;
+    hrcanvas.context2d.fillRect(0, 0, hrcanvas.width, hrcanvas.height);
+
+    if (keyRecorder.isKeyDown()) {
         blinker.reset();
         drawer.drawCursor();
     } else {
@@ -45,14 +63,10 @@ function drawEditor() {
 }
 
 function draw() {
-    background(backgroundColor);
     drawEditor();
+
+    window.requestAnimationFrame(draw);
 }
 
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-    screen.width = windowWidth;
-    screen.height = windowHeight;
-    updateScreenData();
-    drawEditor();
-}
+setup();
+window.requestAnimationFrame(draw);

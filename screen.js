@@ -221,6 +221,12 @@ class ScreenService {
         }
     }
 
+    cellToTextPixels(column, row) {
+        let ctp = this.cellToPixels(column, row);
+        ctp.y += this.screen.rowSize / 2;
+        return ctp;
+    }
+
     adjustScreenOffset({cursor}) {
         let {row: screenRow} = this.getCursorScreenPosition(cursor);
         if (screenRow + this.screen.rowOffset >= this.screen.nrows)
@@ -242,48 +248,55 @@ class ScreenService {
 }
 
 class Drawer {
-    constructor(screenService, editor) {
+    constructor(screenService, editor, hrcanvas) {
         this.screenService = screenService;
         this.editor = editor;
+        this.canvas = hrcanvas;
+    }
+
+    setFont() {
+        this.canvas.context2d.font = `${baseFontSize}px monospace`;
+        this.canvas.context2d.textAlign = 'left';
+        this.canvas.context2d.textBaseline = 'middle';
     }
 
     drawLineNumbers() {
-        fill(numberColor);
+        this.setFont();
+        this.canvas.context2d.fillStyle = numberColor;
         let numberDrawData = this.screenService.getNumbersPositions();
         numberDrawData
         .forEach(e => {
-            const {x, y} = this.screenService.cellToPixels(e.row === this.editor.cursor.row ? 0 : 1, e.screenRow);
-            text(e.row, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+            const {x, y} = this.screenService.cellToTextPixels(e.row === this.editor.cursor.row ? 0 : 1, e.screenRow);
+            this.canvas.context2d.fillText(e.row, x, y, this.screenService.screen.columnSize * `${e.row}`.length);
         });
     }
 
     drawTildes() {
-        fill(tildeColor);
+        this.setFont();
+        this.canvas.context2d.fillStyle = tildeColor;
         let numberDrawData = this.screenService.getNumbersPositions();
         let tildeIndex = numberDrawData[numberDrawData.length - 1].screenRow + 1; 
         while (tildeIndex <= this.screenService.screen.lastWritableRow) {
-            const {x, y} = this.screenService.cellToPixels(0, tildeIndex++);
-            text('~', x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+            const {x, y} = this.screenService.cellToTextPixels(0, tildeIndex++);
+            this.canvas.context2d.fillText('~', x, y, this.screenService.screen.columnSize);
         }
     }
 
     drawCursor() {
-        fill(cursorColor);
+        this.canvas.context2d.fillStyle = cursorColor;
         const {column, row} = this.screenService.getCursorScreenPosition();
         const {x, y} = this.screenService.cellToPixels(column, row);
-        rect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+        this.canvas.context2d.fillRect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
     }
 
     drawLines() {
-        textFont("monospace");
-        textAlign(LEFT, CENTER);
-        textSize(baseFontSize);
-        fill(textColor);
+        this.setFont();
+        this.canvas.context2d.fillStyle = textColor;
 
         let lineDrawData = this.screenService.getLinesScreenPositions();
         lineDrawData.forEach(e => {
-            const {x, y} = this.screenService.cellToPixels(e.position.column, e.position.row);
-            text(e.character, x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+            const {x, y} = this.screenService.cellToTextPixels(e.position.column, e.position.row);
+            this.canvas.context2d.fillText(e.character, x, y, this.screenService.screen.columnSize);
         });
     }
 }
