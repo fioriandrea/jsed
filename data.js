@@ -89,54 +89,33 @@ class Lines extends Observable {
     }
 
     getCharacters(start, end) {
-        let result = [[]];
+        let result = [];
         let column = start.column;
         let row = start.row;
-        const inBoundary = () => row < end.row || row === end.row && column <= end.column;
-        while (inBoundary()) {
-            if (this.getColumns(row) === 0 || column !== 0 && column % this.getColumns(row) === 0) {
-                column = 0;
-                do {
-                    row++;
-                    result.push([]);
-                } while (inBoundary() && this.getColumns(row) === 0);
-                if (!inBoundary())
-                    break;
-            }
-            result[result.length - 1].push(this.getCharacter(row, column));
-            column++;
+
+        while (row <= end.row) {
+            let endColumn = row === end.row ? end.column + 1 : this.getColumns(row);
+            result.push(this.raw[row].slice(column, endColumn));
+            row++;
+            column = 0;
         }
         return result;
     }
 
     deleteCharacters(start, end) {
-        let result = [[]];
+        let result = [];
         let row = end.row;
         let column = end.column;
-        const inBoundary = () => row > start.row || row === start.row && column >= start.column;
 
-        while (inBoundary()) {
-            if (this.getColumns(row) === 0 || column < 0) {
-                do {
-                    if (this.getColumns(row) === 0) {
-                        this.deleteLines(row);
-                    } else {
-                        this.notifyAll({
-                            modify: [row],
-                        });
-                    }
-                    result.unshift([]);
-                    row--;
-                    column = this.getColumns(row) - 1;
-                } while (inBoundary() && this.getColumns(row) === 0);
-                if (!inBoundary())
-                    break;
-            }
-            result[0].unshift(...this.raw[row].splice(column, 1));
-            column--;
-        }
-        if (this.getColumns(start.row) === 0) {
-            this.deleteLines(start.row);
+        while (row >= start.row) {
+            let startColumn = row === start.row ? start.column : 0;
+            result.unshift(this.raw[row].splice(startColumn, column - startColumn + 1));
+            if (this.getColumns(row) === 0)
+                this.deleteLines(row, 1, true);
+            else
+                this.notifyAll({modify: [row]});
+            row--;
+            column = row >= 0 ? this.getColumns(row) - 1 : 0;
         }
 
         return result;
