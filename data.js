@@ -88,6 +88,63 @@ class Lines extends Observable {
         return toReturn;
     }
 
+    getCharacters(start, end) {
+        let result = [[]];
+        let column = start.column;
+        let row = start.row;
+        const inBoundary = () => row < end.row || row === end.row && column <= end.column;
+        while (inBoundary()) {
+            if (this.getColumns(row) === 0 || column !== 0 && column % this.getColumns(row) === 0) {
+                column = 0;
+                do {
+                    row++;
+                    result.push([]);
+                } while (inBoundary() && this.getColumns(row) === 0);
+            }
+            if (!inBoundary())
+                break;
+            result[result.length - 1].push(this.getCharacter(row, column));
+            column++;
+        }
+        return result;
+    }
+
+    deleteCharacters(start, end) {
+        let deleted = [];
+        let result = [[]];
+        let row = end.row;
+        let column = end.column;
+        const inBoundary = () => row > start.row || row === start.row && column >= start.column;
+
+        while (inBoundary()) {
+            if (this.getColumns(row) === 0 || column < 0) {
+                do {
+                    if (this.getColumns(row) === 0) {
+                        this.raw.splice(row, 1);
+                        deleted.push(row);
+                    } else {
+                        this.notifyAll({
+                            modify: [row],
+                        })
+                    }
+                    result.unshift([]);
+                    row--;
+                    column = this.getColumns(row) - 1;
+                } while (inBoundary() && this.getColumns(row) === 0);
+            }
+            if (!inBoundary())
+                break;
+            result[0].unshift(...this.raw[row].splice(column, 1));
+            column--;
+        }
+
+        this.notifyAll({
+            delete: deleted,
+        });
+
+        return result;
+    }
+
     _deleteWordStep(row, column, step) {
         let original = column;
 
@@ -151,6 +208,7 @@ class Cursor extends Observable {
         this.lines = lines;
         this._column = column;
         this._row = row;
+        this.trailingColumns = 1;
         this.handleEdges();
     }
 
@@ -179,9 +237,28 @@ class Cursor extends Observable {
     }
 
     handleEdges() {
-        this._row = Math.max(this._row, 0);
         this._row = Math.min(this._row, this.lines.getRows() - 1);
+        this._row = Math.max(this._row, 0);
+        this._column = Math.min(this._column, this.lines.getColumns(this._row) + this.trailingColumns - 1);
         this._column = Math.max(this._column, 0);
-        this._column = Math.min(this._column, this.lines.getColumns(this._row));
+    }
+}
+
+class VisualTrail {
+    constructor(cursor) {
+        this.cursor = cursor;
+        this.start = {row: 0, column: 0};
+    }
+
+    registerStart(cell) {
+        this.start = cell;
+    }
+
+    getStart() {
+        return compareCells(this.start, this.cursor) <= 0 ? this.start : this.cursor;
+    }
+
+    getEnd() {
+        return compareCells(this.start, this.cursor) > 0 ? this.start : this.cursor;
     }
 }

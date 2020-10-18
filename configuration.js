@@ -3,6 +3,7 @@ const backgroundColor = 'rgb(0, 0, 0)';
 const textColor = 'rgb(255, 255, 255)';
 const tildeColor = 'rgb(200, 200, 200)';
 const numberColor = 'rgb(255, 255, 255)';
+const visualTrailColor = 'rgba(255 , 255, 0, 0.3)';
 
 const baseFontSize = 20;
 const columnSize = 13;
@@ -55,8 +56,33 @@ insertKeyBindings['\n'] = insertKeyBindings['Enter'];
 insertKeyBindings['\r'] = insertKeyBindings['Enter'];
 insertKeyBindings['Return'] = insertKeyBindings['Enter'];
 
+const movementKeyChords = new TagTrie();
+movementKeyChords.addNode(['k'], ({cursor}) => cursor.row--);
+movementKeyChords.addNode(['j'], ({cursor}) => cursor.row++);
+movementKeyChords.addNode(['h'], ({cursor}) => cursor.column--);
+movementKeyChords.addNode(['l'], ({cursor}) => cursor.column++);
+movementKeyChords.addNode(['g', 'g'], ({cursor}) => {
+        cursor.row = 0;
+        cursor.column = 0;
+});
+movementKeyChords.addNode(['G'], ({cursor, lines}) => {
+        cursor.row = lines.getRows() - 1;
+        cursor.column = lines.getColumns(cursor.row);
+});
+movementKeyChords.addNode(['^'], ({cursor}) => {
+        cursor.column = 0;
+});
+movementKeyChords.addNode(['$'], ({cursor, lines}) => {
+        cursor.column = lines.getColumns(cursor.row);
+});
+
 const normalKeyChords = new TagTrie();
+normalKeyChords.merge(movementKeyChords);
 normalKeyChords.addNode(['i'], (editor) => editor.mode = 'insert');
+normalKeyChords.addNode(['v'], (editor) => {
+        editor.mode = 'visual';
+        editor.visualTrail.registerStart({row: cursor.row, column: cursor.column});
+});
 normalKeyChords.addNode(['d', 'd'], ({cursor, lines}) => {
         const deleted = lines.deleteLines(cursor.row);
         Clipboard.write(deleted);
@@ -75,50 +101,40 @@ normalKeyChords.addNode(['d', 'b'], ({cursor, lines}) => {
         Clipboard.write(deleted);
         cursor.handleEdges();
 });
-normalKeyChords.addNode(['k'], ({cursor}) => cursor.row--);
-normalKeyChords.addNode(['j'], ({cursor}) => cursor.row++);
-normalKeyChords.addNode(['h'], ({cursor}) => cursor.column--);
-normalKeyChords.addNode(['l'], ({cursor}) => cursor.column++);
 normalKeyChords.addNode(['x'], ({cursor, lines}) => {
         const deleted = lines.deleteCharacter(cursor.row, cursor.column, true);
         Clipboard.write(deleted);
 });
 normalKeyChords.addNode(['s'], (editor) => {
+        editor.mode = 'insert';
         const {cursor, lines} = editor;
         const deleted = lines.deleteCharacter(cursor.row, cursor.column, true);
         Clipboard.write(deleted);
-        editor.mode = 'insert';
 });
 normalKeyChords.addNode(['a'], (editor) => {
-        editor.cursor.column++;
         editor.mode = 'insert';
-});
-normalKeyChords.addNode(['^'], ({cursor}) => {
-        cursor.column = 0;
-});
-normalKeyChords.addNode(['$'], ({cursor, lines}) => {
-        cursor.column = lines.getColumns(cursor.row);
+        editor.cursor.column++;
 });
 normalKeyChords.addNode(['I'], (editor) => {
-        normalKeyChords.getNode(['^']).payload(editor);
         editor.mode = 'insert';
+        normalKeyChords.getNode(['^']).payload(editor);
 });
 normalKeyChords.addNode(['A'], (editor) => {
-        normalKeyChords.getNode(['$']).payload(editor);
         editor.mode = 'insert';
+        normalKeyChords.getNode(['$']).payload(editor);
 });
 normalKeyChords.addNode(['o'], (editor) => {
+        editor.mode = 'insert';
         const {cursor, lines} = editor;
         lines.insertLines(cursor.row + 1);
         cursor.row++;
         cursor.column = 0;
-        editor.mode = 'insert';
 });
 normalKeyChords.addNode(['O'], (editor) => {
+        editor.mode = 'insert';
         const {cursor, lines} = editor;
         lines.insertLines(cursor.row);
         cursor.column = 0;
-        editor.mode = 'insert';
 });
 normalKeyChords.addNode(['p', 'p'], ({lines, cursor}) => {
         const text = Clipboard.readToLines();
@@ -131,11 +147,20 @@ normalKeyChords.addNode(['P', 'P'], ({lines, cursor}) => {
         lines.insertLines(cursor.row, text);
         cursor.column = 0;
 });
-normalKeyChords.addNode(['g', 'g'], ({cursor}) => {
-        cursor.row = 0;
-        cursor.column = 0;
+
+const visualKeyChords = new TagTrie();
+visualKeyChords.merge(movementKeyChords);
+visualKeyChords.addNode(['Escape'], (editor) => editor.mode = 'normal');
+visualKeyChords.addNode(['d', 'd'], (editor) => {
+        editor.mode = 'normal';
+        const {lines, visualTrail} = editor;
+        let chars = lines.deleteCharacters(visualTrail.getStart(), visualTrail.getEnd());
+        editor.cursor.handleEdges();
+        Clipboard.write(chars);
 });
-normalKeyChords.addNode(['G'], ({cursor, lines}) => {
-        cursor.row = lines.getRows() - 1;
-        cursor.column = lines.getColumns(cursor.row);
+visualKeyChords.addNode(['y', 'y'], (editor) => {
+        editor.mode = 'normal';
+        const {lines, visualTrail} = editor;
+        let chars = lines.getCharacters(visualTrail.getStart(), visualTrail.getEnd());
+        Clipboard.write(chars);
 });

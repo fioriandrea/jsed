@@ -142,8 +142,8 @@ class ScreenLines {
                 this.raw[i][0] -= spanningLines;
                 this.raw[i][1] -= spanningLines;
             }
-            this.raw.splice(e, 1)
         });
+        rows.forEach(e => this.raw.splice(e, 1));
     }
 
     insert(rows) {
@@ -173,13 +173,40 @@ class ScreenService {
             column: column + this.screen.leftPadding,
         }
     }
+
+    fromLogicToWritable(cell) {
+        let [startLine, endLine] = this.screenLines.raw[cell.row];
+        let column = cell.column % this.screen.nwritableColumns;
+        let row = startLine + Math.floor(this.editor.cursor.column / this.screen.nwritableColumns);
+        return {row, column};
+    }
     
     getCursorScreenPosition() {
-        let [startLine, endLine] = this.screenLines.raw[this.editor.cursor.row];
-        let column = cursor.column % this.screen.nwritableColumns;
-        let row = startLine + Math.floor(this.editor.cursor.column / this.screen.nwritableColumns);
-
+        let {row, column} = this.fromLogicToWritable(this.editor.cursor);
         return this.fromWritableToAbsolute({column, row});
+    }
+
+    getVisualTrailPositions() {
+        let first = this.editor.visualTrail.getStart();
+        let second = this.editor.visualTrail.getEnd();
+
+        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
+        if (first.row < firstRow)
+            first = {row: firstRow, column: 0};
+
+        let row = first.row;
+        let column = first.column;
+
+        let result = [];
+        while (row < second.row || row === second.row && column <= second.column) {
+            result.push(this.fromWritableToAbsolute(this.fromLogicToWritable({row, column})));
+            column++;
+            if (this.editor.lines.getColumns(row) === 0 || column !== 0 && column % this.editor.lines.getColumns(row) === 0) {
+                row++;
+                column = 0;
+            }
+        }
+        return result;
     }
 
     getNumbersPositions() {
@@ -280,6 +307,17 @@ class Drawer {
             const {x, y} = this.screenService.cellToTextPixels(0, tildeIndex++);
             this.canvas.context2d.fillText('~', x, y, this.screenService.screen.columnSize);
         }
+    }
+
+    drawVisualTrail() {
+        if (this.editor.mode !== 'visual') 
+            return;
+        this.canvas.context2d.fillStyle = visualTrailColor;
+        let visualTrailDrawData = this.screenService.getVisualTrailPositions();
+        visualTrailDrawData.forEach(e => {
+            const {x, y} = this.screenService.cellToPixels(e.column, e.row);
+            this.canvas.context2d.fillRect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
+        });
     }
 
     drawCursor() {

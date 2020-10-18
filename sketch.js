@@ -27,11 +27,24 @@ function setup() {
 
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
+    visualTrail = new VisualTrail(cursor);
     screen = new Screen(hrcanvas.width, hrcanvas.height, columnSize, rowSize);
     editor = {
         lines,
         cursor,
-        mode: 'insert',
+        visualTrail,
+        _mode: 'insert',
+        get mode() {
+            return this._mode;
+        },
+        set mode(m) {
+            this._mode = m;
+            if (m === 'insert')
+                this.cursor.trailingColumns = 1;
+            else
+                this.cursor.trailingColumns = 0;
+            this.cursor.handleEdges();
+        }
     };
     screenService = new ScreenService(screen, editor);
     drawer = new Drawer(screenService, editor, hrcanvas);
@@ -60,6 +73,7 @@ function drawEditor() {
     drawer.drawLines();
     drawer.drawLineNumbers();
     drawer.drawTildes();
+    drawer.drawVisualTrail();
 }
 
 function draw() {

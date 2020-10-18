@@ -15,6 +15,12 @@ const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === O
 
 const isSpace = char => char === ' '  || char === '\n' || char === '\t' || char === '\r' || char === '\b';
 
+const compareCells = (cell0, cell1) => {
+    let rowDiff = cell0.row - cell1.row;
+    let columnDiff = cell0.column - cell1.column;
+    return rowDiff !== 0 ? rowDiff : columnDiff;
+};
+
 const toLines = data => {
     if (!data) {
         return [['']];
@@ -126,6 +132,31 @@ class TagTrie {
         };
     }
 
+    _getChordsDfs(node, current, container) {
+        if (isObjEmpty(node.sons)) {
+            container.push([...current]);
+            return;
+        }
+        for (let son in node.sons) {
+            if (!node.sons.hasOwnProperty(son))
+                continue;
+            current.push(son);
+            this._getChordsDfs(node.sons[son], current, container);
+            current.pop();
+        }
+    }
+
+    getChords() {
+        let container = [];
+        this._getChordsDfs(this.raw, [], container);
+        return container;
+    }
+
+    merge(tagTrie) {
+        tagTrie.getChords()
+        .forEach(e => this.addNode(e, tagTrie.getNode(e).payload));
+    }
+
     getNode(path) {
         let node = this.raw.sons[path[0]];
 
@@ -219,7 +250,8 @@ const Clipboard = (() => {
 
         read(register) {
             register = register || this.defaultRegister;
-            return this.registers[register];
+            let data = JSON.parse(JSON.stringify(this.registers[register]));
+            return data;
         }
 
         readToLines(register) {

@@ -23,24 +23,12 @@ class KeyChordControl {
     }
 }
 
-class InsertControl {
-    constructor() {}
-
-    keyPressed(key, editor) {
-        if (insertKeyBindings[key]) {
-            insertKeyBindings[key](editor);
-        } else {
-            let {cursor, lines} = editor;
-            lines.insertCharacters(cursor.row, cursor.column, key);
-            cursor.column++;
-        }
-    }
-}
-
-class NormalControl {
-    constructor(delay=1000) {
+class ModeControl {
+    constructor(keyBindings, defaultKeyBinding, keyChords, delay=1000) {
         this.timeout = new Timeout(delay);
-        this.keyChordControl = new KeyChordControl(normalKeyChords);
+        this.keyChordControl = new KeyChordControl(keyChords || new TagTrie());
+        this.keyBindings = keyBindings || {};
+        this.defaultKeyBinding = defaultKeyBinding || (() => {});
     }
 
     keyPressed(key, editor) {
@@ -48,11 +36,23 @@ class NormalControl {
             this.timeout.reset();
             this.keyChordControl.cleanBuffer();
         }
-        this.keyChordControl.keyPressed(key, editor);
+        let node = this.keyChordControl.keyPressed(key, editor);
+        if (!node) {
+            if (this.keyBindings[key]) {
+                this.keyBindings[key](editor);
+            } else {
+                this.defaultKeyBinding(key, editor);
+            }
+        }
     }
 }
 
 const controls = {
-    'insert': new InsertControl(),
-    'normal': new NormalControl(chordDelay),
+    'insert': new ModeControl(insertKeyBindings, (key, editor) => {
+            let {cursor, lines} = editor;
+            lines.insertCharacters(cursor.row, cursor.column, key);
+            cursor.column++;
+    }),
+    'normal': new ModeControl(null, null, normalKeyChords, chordDelay),
+    'visual': new ModeControl(null, null, visualKeyChords, chordDelay),
 };
