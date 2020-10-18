@@ -100,9 +100,9 @@ class Lines extends Observable {
                     row++;
                     result.push([]);
                 } while (inBoundary() && this.getColumns(row) === 0);
+                if (!inBoundary())
+                    break;
             }
-            if (!inBoundary())
-                break;
             result[result.length - 1].push(this.getCharacter(row, column));
             column++;
         }
@@ -129,9 +129,9 @@ class Lines extends Observable {
                     row--;
                     column = this.getColumns(row) - 1;
                 } while (inBoundary() && this.getColumns(row) === 0);
+                if (!inBoundary())
+                    break;
             }
-            if (!inBoundary())
-                break;
             result[0].unshift(...this.raw[row].splice(column, 1));
             column--;
         }
