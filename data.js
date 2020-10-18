@@ -110,7 +110,6 @@ class Lines extends Observable {
     }
 
     deleteCharacters(start, end) {
-        let deleted = [];
         let result = [[]];
         let row = end.row;
         let column = end.column;
@@ -120,12 +119,11 @@ class Lines extends Observable {
             if (this.getColumns(row) === 0 || column < 0) {
                 do {
                     if (this.getColumns(row) === 0) {
-                        this.raw.splice(row, 1);
-                        deleted.push(row);
+                        this.deleteLines(row);
                     } else {
                         this.notifyAll({
                             modify: [row],
-                        })
+                        });
                     }
                     result.unshift([]);
                     row--;
@@ -137,10 +135,9 @@ class Lines extends Observable {
             result[0].unshift(...this.raw[row].splice(column, 1));
             column--;
         }
-
-        this.notifyAll({
-            delete: deleted,
-        });
+        if (this.getColumns(start.row) === 0) {
+            this.deleteLines(start.row);
+        }
 
         return result;
     }
