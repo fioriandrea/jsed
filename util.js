@@ -15,6 +15,20 @@ const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === O
 
 const isSpace = char => char === ' '  || char === '\n' || char === '\t' || char === '\r' || char === '\b';
 
+const toLines = data => {
+    if (!data) {
+        return [['']];
+    } else if (typeof data === 'string') {
+        return [[data]];
+    } else if (Array.isArray(data)) {
+        if (Array.isArray(data[0])) {
+            return data;
+        } else {
+            return [data];
+        }
+    }
+};
+
 const milliseconds = () => window.performance.now();
 
 class HRCanvas {
@@ -190,3 +204,28 @@ class Observable {
         this.observers.forEach(o => o.respondToNotify(payload));
     }
 }
+
+const Clipboard = (() => {
+    class _Clipboard {
+        constructor() {
+            this.registers = {};
+            this.defaultRegister = 'a';
+        }
+
+        write(data, register) {
+            register = register || this.defaultRegister;
+            this.registers[register] = data;
+        }
+
+        read(register) {
+            register = register || this.defaultRegister;
+            return this.registers[register];
+        }
+
+        readToLines(register) {
+            return toLines(this.read(register));
+        }
+    }
+
+    return new _Clipboard();
+})();

@@ -27,15 +27,16 @@ class Lines extends Observable {
         });
     }
 
-    insertLine(row, chars=[]) {
-        this.raw.splice(row, 0, chars);
+    insertLines(row, lines=[[]]) {
+        for (let i = 0; i < lines.length; i++)
+            this.raw.splice(row + i, 0, lines[i]);
         this.notifyAll({
-            insert: [row],
+            insert: new Array(lines.length).fill(0).map((e, i) => row + i),
         });
     }
     
     insertNewLine(row, pos) {
-        this.insertLine(row + 1);
+        this.insertLines(row + 1);
         for (let i = pos; i < this.raw[row].length; i++) {
             this.raw[row + 1].push(this.raw[row][i]);
         }
@@ -65,7 +66,7 @@ class Lines extends Observable {
     deleteLines(start, count=1, forwards=true) {
         let toReturn;
         if (this.raw.length === 1) {
-            toReturn = this.raw[0];
+            toReturn = [this.raw[0]];
             this.raw[0] = [];
             this.notifyAll({
                 modify: [0],
