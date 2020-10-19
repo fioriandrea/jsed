@@ -103,12 +103,14 @@ normalKeyChords.addNode(['d', 'b'], ({cursor, lines}) => {
 });
 normalKeyChords.addNode(['x'], ({cursor, lines}) => {
         const deleted = lines.deleteCharacter(cursor.row, cursor.column, true);
+        cursor.handleEdges();
         Clipboard.write(deleted);
 });
 normalKeyChords.addNode(['s'], (editor) => {
         editor.mode = 'insert';
         const {cursor, lines} = editor;
         const deleted = lines.deleteCharacter(cursor.row, cursor.column, true);
+        cursor.handleEdges();
         Clipboard.write(deleted);
 });
 normalKeyChords.addNode(['a'], (editor) => {

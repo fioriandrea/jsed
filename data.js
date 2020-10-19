@@ -137,7 +137,7 @@ class Lines extends Observable {
         let toReturn;
         if (this.raw[row].length === start) {
             this.joinRows(row, row + 1);
-            toReturn = '\n';
+            toReturn = [];
         } else {
             toReturn = this.raw[row].splice(start, 1);
             this.notifyAll({
@@ -151,7 +151,7 @@ class Lines extends Observable {
         let toReturn;
         if (start === 0) {
             this.joinRows(row - 1, row);
-            toReturn = '\n';
+            toReturn = [];
         } else {
             toReturn = this.raw[row].splice(start - 1, 1);
             this.notifyAll({
