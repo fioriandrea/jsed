@@ -24,10 +24,9 @@ class KeyChordControl {
 }
 
 class ModeControl {
-    constructor(keyBindings, defaultKeyBinding, keyChords, delay=1000) {
+    constructor(keyChords, defaultKeyBinding, delay=1000) {
         this.timeout = new Timeout(delay);
         this.keyChordControl = new KeyChordControl(keyChords || new TagTrie());
-        this.keyBindings = keyBindings || {};
         this.defaultKeyBinding = defaultKeyBinding || (() => {});
     }
 
@@ -38,21 +37,17 @@ class ModeControl {
         }
         let node = this.keyChordControl.keyPressed(key, editor);
         if (!node) {
-            if (this.keyBindings[key]) {
-                this.keyBindings[key](editor);
-            } else {
-                this.defaultKeyBinding(key, editor);
-            }
+            this.defaultKeyBinding(key, editor);
         }
     }
 }
 
 const controls = {
-    'insert': new ModeControl(insertKeyBindings, (key, editor) => {
+    'insert': new ModeControl(insertKeyChords, (key, editor) => {
             let {cursor, lines} = editor;
             lines.insertCharacters(cursor.row, cursor.column, key);
             cursor.column++;
-    }),
-    'normal': new ModeControl(null, null, normalKeyChords, chordDelay),
-    'visual': new ModeControl(null, null, visualKeyChords, chordDelay),
+    }, chordDelay),
+    'normal': new ModeControl(normalKeyChords, (() => {}), chordDelay),
+    'visual': new ModeControl(visualKeyChords, (() => {}), chordDelay),
 };

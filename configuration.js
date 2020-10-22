@@ -12,12 +12,12 @@ const rowSize = 30;
 const blinkPeriod = 2000;
 const chordDelay = 1000;
 
-const insertKeyBindings = {
-        'ArrowUp': ({cursor}) => cursor.row--,
-        'ArrowDown': ({cursor}) => cursor.row++,
-        'ArrowLeft': ({cursor}) => cursor.column--,
-        'ArrowRight': ({cursor}) => cursor.column++,
-        'Backspace': ({cursor, lines}) => {
+const insertKeyChords = new TagTrie();
+insertKeyChords.addNode(['ArrowUp'], ({cursor}) => cursor.row--);
+insertKeyChords.addNode(['ArrowDown'], ({cursor}) => cursor.row++);
+insertKeyChords.addNode(['ArrowLeft'], ({cursor}) => cursor.column--);
+insertKeyChords.addNode(['ArrowRight'], ({cursor}) => cursor.column++);
+insertKeyChords.addNode(['Backspace'], ({cursor, lines}) => {
                 let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
                 if (lines.deleteCharacter(cursor.row, cursor.column, false) === '\n') {
                         cursor.row--;
@@ -25,36 +25,34 @@ const insertKeyBindings = {
                 } else {
                         cursor.column--;
                 }
-        },
-        'Delete': ({cursor, lines}) => lines.deleteCharacter(cursor.row, cursor.column, true),
-        'Enter': ({cursor, lines}) => {
+});
+insertKeyChords.addNode(['Delete'], ({cursor, lines}) => lines.deleteCharacter(cursor.row, cursor.column, true));
+insertKeyChords.addNode(['Enter'], ({cursor, lines}) => {
                 lines.insertNewLine(cursor.row, cursor.column);
                 cursor.row++;
                 cursor.column = 0;
-        },
-        'Escape': (editor) => editor.mode = 'normal',
-        'Control': () => {},
-        'Alt': () => {},
-        'OS': () => {},
-        'AltGraph': () => {},
-        'Shift': () => {},
-        'CapsLock': () => {},
-        'F1': () => {},
-        'F2': () => {},
-        'F3': () => {},
-        'F4': () => {},
-        'F5': () => {},
-        'F6': () => {},
-        'F7': () => {},
-        'F8': () => {},
-        'F9': () => {},
-        'F10': () => {},
-        'Insert': () => {},
-};
-
-insertKeyBindings['\n'] = insertKeyBindings['Enter'];
-insertKeyBindings['\r'] = insertKeyBindings['Enter'];
-insertKeyBindings['Return'] = insertKeyBindings['Enter'];
+});
+insertKeyChords.addNode(['\n'], insertKeyChords.getNode(['Enter']).payload);
+insertKeyChords.addNode(['\r'], insertKeyChords.getNode(['Enter']).payload);
+insertKeyChords.addNode(['Return'], insertKeyChords.getNode(['Enter']).payload);
+insertKeyChords.addNode(['Escape'], (editor) => editor.mode = 'normal');
+insertKeyChords.addNode(['Control'], () => {});
+insertKeyChords.addNode(['Alt'], () => {});
+insertKeyChords.addNode(['OS'], () => {});
+insertKeyChords.addNode(['AltGraph'], () => {});
+insertKeyChords.addNode(['Shift'], () => {});
+insertKeyChords.addNode(['CapsLock'], () => {});
+insertKeyChords.addNode(['F1'], () => {});
+insertKeyChords.addNode(['F2'], () => {});
+insertKeyChords.addNode(['F3'], () => {});
+insertKeyChords.addNode(['F4'], () => {});
+insertKeyChords.addNode(['F5'], () => {});
+insertKeyChords.addNode(['F6'], () => {});
+insertKeyChords.addNode(['F7'], () => {});
+insertKeyChords.addNode(['F8'], () => {});
+insertKeyChords.addNode(['F9'], () => {});
+insertKeyChords.addNode(['F10'], () => {});
+insertKeyChords.addNode(['Insert'], () => {});
 
 const movementKeyChords = new TagTrie();
 movementKeyChords.addNode(['k'], ({cursor}) => cursor.row--);
