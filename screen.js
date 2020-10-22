@@ -79,7 +79,7 @@ class Screen {
     }
 }
 
-class ScreenLines {
+class WrapScreenLines {
     constructor(screen, lines) {
         this.screen = screen;
         this.lines = lines;
@@ -172,11 +172,11 @@ class ScreenLines {
     }
 }
 
-class ScreenService {
+class WrapScreenService {
     constructor(screen, editor) {
         this.screen = screen;
         this.editor = editor;
-        this.screenLines = new ScreenLines(screen, editor.lines);
+        this.screenLines = new WrapScreenLines(screen, editor.lines);
     }
 
     fromWritableToAbsolute({row, column}) {

@@ -50,7 +50,7 @@ function setup() {
             this.cursor.handleEdges();
         }
     };
-    screenService = new ScreenService(screen, editor);
+    screenService = new WrapScreenService(screen, editor);
     drawer = new Drawer(screenService, editor, hrcanvas);
 
     blinker = new Blinker(blinkPeriod);
