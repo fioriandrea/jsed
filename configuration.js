@@ -149,6 +149,9 @@ normalKeyChords.addNode(['P', 'P'], ({lines, cursor}) => {
         lines.insertLines(cursor.row, text);
         cursor.column = 0;
 });
+normalKeyChords.addNode(['w', 'w'], ({lines}) => {
+        downloadTextFile(lines.toString());
+});
 
 const visualKeyChords = new TagTrie();
 visualKeyChords.merge(movementKeyChords);

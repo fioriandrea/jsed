@@ -4,6 +4,10 @@ class Lines extends Observable {
         this.raw = raw;
     }
 
+    toString() {
+        return this.raw.map(e => e.join('')).join('\n');
+    }
+
     getCharacter(row, column) {
         return this.raw[row][column];
     }
