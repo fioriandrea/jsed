@@ -19,6 +19,7 @@ function windowResized() {
     screen.width = getWindowWidth();
     screen.height = getWindowHeight();
     updateScreenData();
+    screenService.adjustScreenLines();
     drawEditor();
 }
 

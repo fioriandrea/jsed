@@ -197,27 +197,42 @@ class ScreenService {
         return this.fromWritableToAbsolute({column, row});
     }
 
-    getVisualTrailPositions() {
-        let first = this.editor.visualTrail.getStart();
-        let second = this.editor.visualTrail.getEnd();
-
-        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
-        if (first.row < firstRow)
-            first = {row: firstRow, column: 0};
-
-        let row = first.row;
-        let column = first.column;
-
+    getLinesScreenPositionsBetween(firstRow, firstColumn, lastRow, lastColumn) {
         let result = [];
-        while (row < second.row || row === second.row && column <= second.column) {
-            result.push(this.fromWritableToAbsolute(this.fromLogicToWritable({row, column})));
-            column++;
-            if (this.editor.lines.getColumns(row) === 0 || column !== 0 && column % this.editor.lines.getColumns(row) === 0) {
-                row++;
-                column = 0;
+        for (let i = firstRow; i <= lastRow && this.screenLines.raw[i][0] <= this.screen.lastWritableRow; i++) {
+            for (let j = 0, column = 0, row = this.screenLines.raw[i][0]; j <= this.editor.lines.getColumns(i) - 1 && row <= this.screen.lastWritableRow; j++, column++) {
+                if (column !== 0 && column % this.screen.nwritableColumns === 0) {
+                    row++;
+                    column = 0;
+                }
+
+                if (i === firstRow && j < firstColumn)
+                    continue;
+                else if (i === lastRow && j > lastColumn)
+                    break;
+
+                result.push({
+                    character: this.editor.lines.getCharacter(i, j),
+                    position: this.fromWritableToAbsolute({row, column}),
+                });
             }
         }
         return result;
+    }
+
+    getLinesScreenPositions() {
+        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
+        let firstColumn = 0;
+        let lastRow = this.screenLines.raw.length - 1;
+        let lastColumn = this.editor.lines.getColumns(lastRow) - 1;
+        return this.getLinesScreenPositionsBetween(firstRow, firstColumn, lastRow, lastColumn);
+    }
+
+    getVisualTrailPositions() {
+        let first = this.editor.visualTrail.getStart();
+        let second = this.editor.visualTrail.getEnd();
+        let lineScreenPositions = this.getLinesScreenPositionsBetween(first.row, first.column, second.row, second.column);
+        return lineScreenPositions.map(e => e.position);
     }
 
     getNumbersPositions() {
@@ -229,25 +244,6 @@ class ScreenService {
                 screenRow: this.screenLines.raw[i][0],
                 row: i,
             });
-        }
-        return result;
-    }
-
-    getLinesScreenPositions() {
-        let firstRow = this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow);
-        let lastRow = this.screenLines.raw.length - 1;
-        let result = [];
-        for (let i = firstRow; i <= lastRow && this.screenLines.raw[i][0] <= this.screen.lastWritableRow; i++) {
-            for (let j = 0, column = 0, row = this.screenLines.raw[i][0]; j < this.editor.lines.getColumns(i) && row <= this.screen.lastWritableRow; j++, column++) {
-                if (column !== 0 && column % this.screen.nwritableColumns === 0) {
-                    row++;
-                    column = 0;
-                }
-                result.push({
-                    character: this.editor.lines.getCharacter(i, j),
-                    position: this.fromWritableToAbsolute({row, column}),
-                });
-            }
         }
         return result;
     }
@@ -276,6 +272,10 @@ class ScreenService {
     adjustLeftPadding({lines}) {
         let lineNumberDigits = `${lines.getRows() - 1}`.length;
         this.screen.leftPadding = lineNumberDigits + 2;
+    }
+
+    adjustScreenLines() {
+        this.screenLines.raw = this.screenLines.computeRaw();
     }
 
     adjustScreen(editor) {
