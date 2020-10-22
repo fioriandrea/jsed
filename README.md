@@ -23,3 +23,7 @@ Currently, jsed supports three modes:
 * Insert mode
 * Normal mode
 * Visual mode
+
+# Online version
+
+An online version of this editor can be found [here](https://fioriandrea.github.io/jsed/).
