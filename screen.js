@@ -199,6 +199,11 @@ class ScreenService {
     }
 
     getLinesScreenPositionsBetween(firstRow, firstColumn, lastRow, lastColumn) {
+        firstRow = Math.max(firstRow, this.screenLines.findRowContainingScreenRow(this.screen.firstWritableRow));
+        firstColumn = Math.min (firstColumn, this.editor.lines.getColumns(firstRow) - 1);
+        lastRow = Math.min(lastRow, this.screen.lastWritableRow);
+        lastColumn = Math.min(lastColumn, this.editor.lines.getColumns(lastRow) - 1);
+
         let result = [];
         for (let i = firstRow; i <= lastRow && this.screenLines.raw[i][0] <= this.screen.lastWritableRow; i++) {
             for (let j = 0, column = 0, row = this.screenLines.raw[i][0]; j <= this.editor.lines.getColumns(i) - 1 && row <= this.screen.lastWritableRow; j++, column++) {
