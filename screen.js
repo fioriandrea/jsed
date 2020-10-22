@@ -111,7 +111,8 @@ class ScreenLines {
 
     computeScreenLine(row) {
         let start = row === 0 ? 0 : this.raw[row - 1][1] + 1;
-        return [start, Math.floor(this.lines.getRow(row).length / this.screen.nwritableColumns) + start];
+        let end = Math.floor(this.lines.getRow(row).length / (this.screen.nwritableColumns + 1)) + start;
+        return [start, end];
     }
 
     computeRaw() {
@@ -130,7 +131,17 @@ class ScreenLines {
     modify(rows) {
         if (!rows)
             return;
-        rows.forEach(e => this.raw[e] = this.computeScreenLine(e));
+        rows.forEach(e => {
+            let newScreenLine = this.computeScreenLine(e);
+            if (newScreenLine[1] !== this.raw[e][1]) {
+                let takenLines = newScreenLine[1] - this.raw[e][1];
+                for (let i = e + 1; i < this.raw.length; i++) {
+                    this.raw[i][0] += takenLines;
+                    this.raw[i][1] += takenLines;
+                }
+            }
+            this.raw[e] = newScreenLine;
+        });
     }
 
     delete(rows) {
