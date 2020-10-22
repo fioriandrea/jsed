@@ -111,7 +111,8 @@ class ScreenLines {
 
     computeScreenLine(row) {
         let start = row === 0 ? 0 : this.raw[row - 1][1] + 1;
-        let end = Math.floor(this.lines.getRow(row).length / (this.screen.nwritableColumns + 1)) + start;
+        let occupiedRows = Math.max(1, Math.ceil(this.lines.getColumns(row) / this.screen.nwritableColumns));
+        let end = occupiedRows + start - 1;
         return [start, end];
     }
 
