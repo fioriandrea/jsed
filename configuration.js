@@ -19,7 +19,8 @@ insertKeyChords.addNode(['ArrowLeft'], ({cursor}) => cursor.column--);
 insertKeyChords.addNode(['ArrowRight'], ({cursor}) => cursor.column++);
 insertKeyChords.addNode(['Backspace'], ({cursor, lines}) => {
                 let previousLineLen = lines.raw[cursor.row - 1] ? lines.raw[cursor.row - 1].length : 0;
-                if (lines.deleteCharacter(cursor.row, cursor.column, false) === '\n') {
+                // if was at start of line
+                if (lines.deleteCharacter(cursor.row, cursor.column, false).length === 0) {
                         cursor.row--;
                         cursor.column = previousLineLen;
                 } else {
