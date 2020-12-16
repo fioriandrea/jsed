@@ -80,10 +80,13 @@ function drawEditor() {
     drawer.drawVisualTrail();
 }
 
+const maxfps = 30;
 function draw() {
     drawEditor();
 
-    window.requestAnimationFrame(draw);
+    setTimeout(() => {
+        window.requestAnimationFrame(draw);
+    }, 1000 / maxfps);
 }
 
 setup();
