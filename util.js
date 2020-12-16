@@ -58,28 +58,6 @@ class HRCanvas {
     }
 }
 
-class Blinker {
-    constructor(period, dutyCycle=0.5, startOn=true) {
-        this.period = period;
-        this.dutyCycle = dutyCycle;
-        this.onCondition = startOn ? (delta) => delta <= this.period * this.dutyCycle :
-            (delta) => delta >= this.period * (1 - this.dutyCycle);
-        this.millis = milliseconds();
-    }
-
-    reset() {
-        this.millis = milliseconds();
-    }
-
-    output() {
-        let delta = milliseconds() - this.millis;
-        if (delta >= this.period) {
-            this.millis = milliseconds();
-        }
-        return this.onCondition(delta) ? 1 : 0;
-    }
-}
-
 class Timeout {
     constructor(interval) {
         this.interval = interval;
@@ -97,27 +75,6 @@ class Timeout {
             return 1;
         else 
             return 0;
-    }
-}
-
-class CoolDown {
-    constructor(delay) {
-        this.delay = delay;
-        this.lastExecution = null;
-    }
-
-    reset() {
-        this.lastExecution = null;
-    }
-
-    output() {
-        const currentMillis = millis();
-        if (this.lastExecution === null || currentMillis - this.lastExecution > this.delay) {
-            this.lastExecution = currentMillis;
-            return 1;
-        } else {
-            return 0;
-        }
     }
 }
 
@@ -263,7 +220,7 @@ const Clipboard = (() => {
 })();
 
 const downloadTextFile = (text, filename='file.txt') => {
-    var element = document.createElement('a');
+    let element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
     element.setAttribute('download', filename);
     element.click();

@@ -59,6 +59,7 @@ function setup() {
     window.addEventListener("keydown", e => {
         controls[editor.mode].keyPressed(e.key, editor);
         updateScreenData();
+        drawEditor();
     });
     window.addEventListener("resize", windowResized);
 }
@@ -67,13 +68,7 @@ function drawEditor() {
     hrcanvas.context2d.fillStyle = backgroundColor;
     hrcanvas.context2d.fillRect(0, 0, hrcanvas.width, hrcanvas.height);
 
-    if (keyRecorder.isKeyDown()) {
-        blinker.reset();
-        drawer.drawCursor();
-    } else {
-        if (blinker.output())
-            drawer.drawCursor();
-    }
+    drawer.drawCursor();
     drawer.drawLines();
     drawer.drawLineNumbers();
     drawer.drawTildes();
@@ -83,11 +78,7 @@ function drawEditor() {
 const maxfps = 30;
 function draw() {
     drawEditor();
-
-    setTimeout(() => {
-        window.requestAnimationFrame(draw);
-    }, 1000 / maxfps);
 }
 
 setup();
-window.requestAnimationFrame(draw);
+drawEditor();
