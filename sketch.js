@@ -53,7 +53,6 @@ function setup() {
     screenService = new WrapScreenService(screen, editor);
     drawer = new Drawer(screenService, editor, hrcanvas);
 
-    blinker = new Blinker(blinkPeriod);
     keyRecorder = new KeyRecorder();
     keyRecorder.bind(window);
     window.addEventListener("keydown", e => {
@@ -73,11 +72,6 @@ function drawEditor() {
     drawer.drawLineNumbers();
     drawer.drawTildes();
     drawer.drawVisualTrail();
-}
-
-const maxfps = 30;
-function draw() {
-    drawEditor();
 }
 
 setup();
