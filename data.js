@@ -1,190 +1,259 @@
-class Lines extends Observable {
-    constructor(raw=[[]]) {
-        super();
+const spliceBothWays = (array, start, deleteCount, toInsert, forwards = true) => {
+    if (!forwards) {
+        deleteCount = Math.min(start, deleteCount);
+        start = start - deleteCount;
+    }
+    return array.splice(start, deleteCount, ...toInsert);
+};
+
+const isSpace = char => char === ' ' || char === '\n' || char === '\t' || char === '\r' || char === '\b';
+
+const compareCells = (cell0, cell1) => {
+    let rowDiff = cell0.row - cell1.row;
+    let columnDiff = cell0.column - cell1.column;
+    return rowDiff !== 0 ? rowDiff : columnDiff;
+};
+
+const charArraysToLines = (chArrays) => new Lines(
+    chArrays.map(charr => new Line(charr)),
+);
+
+class Line {
+    constructor(raw = []) {
         this.raw = raw;
     }
 
     toString() {
-        return this.raw.map(e => e.join('')).join('\n');
+        return this.raw.join("");
     }
 
-    getCharacter(row, column) {
-        return this.raw[row][column];
-    }
-
-    getRows() {
+    get length() {
         return this.raw.length;
     }
 
-    getRow(i) {
-        return this.raw[i];
+    getChar(pos) {
+        return this.raw[pos];
     }
 
-    getColumns(row) {
-        return this.raw.length ? this.raw[row].length : 0;
-    }
-
-    insertCharacters(row, pos, ...chars) {
-        this.raw[row].splice(pos, 0, ...chars);
-        this.notifyAll({
-            modify: [row],
-        });
-    }
-
-    insertLines(row, lines=[[]]) {
-        for (let i = 0; i < lines.length; i++)
-            this.raw.splice(row + i, 0, lines[i]);
-        this.notifyAll({
-            insert: new Array(lines.length).fill(0).map((e, i) => row + i),
-        });
-    }
-    
-    insertNewLine(row, pos) {
-        this.insertLines(row + 1);
-        for (let i = pos; i < this.raw[row].length; i++) {
-            this.raw[row + 1].push(this.raw[row][i]);
+    getRange(start, end) {
+        if (end === undefined) {
+            end = this.length;
         }
-        this.raw[row].splice(pos);
-        this.notifyAll({
-            modify: [row, row + 1],
-        });
+        return new Line(this.raw.slice(start, end));
     }
 
-    joinRows(row0, row1) {
-        if (row0 < 0 || row1 >= this.getRows())
-            return;
-        this.raw[row0].push(...this.raw[row1]);
-        this.raw.splice(row1, 1);
-        this.notifyAll({
-            modify: [row0],
-            delete: [row1],
-        });
+    pushChars(chars) {
+        return this.raw.push(...chars);
     }
 
-    deleteCharacter(row, start, forwards=true) {
-        const toReturn = forwards ? this._deleteCharacterForwards(row, start) :
-         this._deleteCharacterBackwards(row, start);
-        return toReturn;
+    insertChars(pos, chars) {
+        return this.raw.splice(pos, 0, ...chars);
     }
 
-    deleteLines(start, count=1, forwards=true) {
-        let toReturn;
-        if (this.raw.length === 1) {
-            toReturn = [this.raw[0]];
-            this.raw[0] = [];
-            this.notifyAll({
-                modify: [0],
-            });
-        } else {
-            toReturn = forwards ? this._deleteLinesForwards(start, count) :
-                this._deleteLinesBackwards(start, count);
-        }
-        return toReturn;
+    deleteChars(pos, deleteCount, forwards = true) {
+        return new Line(spliceBothWays(this.raw, pos, deleteCount, [], forwards));
     }
 
-    deleteWords(row, column, count=1, forwards=true) {
-        let toReturn = [];
-        while (count-- > 0)
-            toReturn.push(...this._deleteWordStep(row, column, forwards ? 1 : -1));
-        this.notifyAll({
-            modify: [row],
-        });
-        return toReturn;
+    deleteCharRange(start, end) {
+        return this.deleteChars(start, end - start, true);
     }
 
-    getCharacters(start, end) {
-        let result = [];
-        let column = start.column;
-        let row = start.row;
-
-        while (row <= end.row) {
-            let endColumn = row === end.row ? end.column + 1 : this.getColumns(row);
-            result.push(this.raw[row].slice(column, endColumn));
-            row++;
-            column = 0;
-        }
-        return result;
+    concat(line) {
+        this.raw.push(...line.raw);
+        return this;
     }
 
-    deleteCharacters(start, end) {
-        let result = [];
-        let row = end.row;
-        let column = end.column;
-
-        while (row >= start.row) {
-            let startColumn = row === start.row ? start.column : 0;
-            result.unshift(this.raw[row].splice(startColumn, column - startColumn + 1));
-            if (this.getColumns(row) === 0)
-                this.deleteLines(row, 1, true);
-            else
-                this.notifyAll({modify: [row]});
-            row--;
-            column = row >= 0 ? this.getColumns(row) - 1 : 0;
-        }
-
-        return result;
+    isSpace(pos) {
+        return isSpace(this.getChar(pos));
     }
 
-    _deleteWordStep(row, column, step) {
-        let original = column;
-
-        while (column < this.getColumns(row) && column >= 0 && !isSpace(this.getCharacter(row, column))) 
-            column += step;
-        while (column < this.getColumns(row) && column >= 0 && isSpace(this.getCharacter(row, column))) 
-            column += step;
-        
-        return this.raw[row].splice(original, Math.abs(column - original));
-
+    skipSpaces(pos, forwards = true) {
+        let increment = forwards ? 1 : -1;
+        while (this.isSpace(pos))
+            pos += increment;
+        return pos;
     }
 
-    _deleteCharacterForwards(row, start) {
-        let toReturn;
-        if (this.raw[row].length === start) {
-            this.joinRows(row, row + 1);
-            toReturn = [];
-        } else {
-            toReturn = this.raw[row].splice(start, 1);
-            this.notifyAll({
-                modify: [row],
-            });
-        }
-        return toReturn;
+    wordStart(pos) {
+        pos = this.skipSpaces(pos, false);
+        while (pos >= 0 && !this.isSpace(pos))
+            pos--;
+        return ++pos;
     }
 
-    _deleteCharacterBackwards(row, start) {
-        let toReturn;
-        if (start === 0) {
-            this.joinRows(row - 1, row);
-            toReturn = [];
-        } else {
-            toReturn = this.raw[row].splice(start - 1, 1);
-            this.notifyAll({
-                modify: [row],
-            });
-        }
-        return toReturn;
+    wordEnd(pos) {
+        pos = this.skipSpaces(pos, true);
+        while (pos < this.length && !this.isSpace(pos))
+            pos++;
+        return pos;
     }
 
-    _deleteLinesForwards(start, count=1) {
-        let toReturn = this.raw.splice(start, count);
-        this.notifyAll({
-            delete: new Array(count).fill(0).map((e, i) => i + start),
-        });
-        return toReturn;
+    previousWordStart(pos) {
+        pos = this.wordStart(pos) - 1;
+        pos = this.wordStart(pos);
+        return pos;
     }
 
-    _deleteLinesBackwards(start, count=1) {
-        let toReturn = this.raw.splice(start - count, count);
-        this.notifyAll({
-            delete: new Array(count).fill(0).map((e, i) => start - i),
-        });
-        return toReturn;
+    nextWordStart(pos) {
+        pos = this.wordEnd(pos);
+        pos = this.skipSpaces(pos);
+        return pos;
+    }
+
+    getWord(pos, forwards = true) {
+        let start = forwards ? pos : this.wordStart(pos);
+        let end = forwards ? this.wordEnd(pos) : pos;
+        return this.getRange(start, end);
+    }
+
+    deleteWord(pos, forwards = true) {
+        let start = forwards ? pos : this.previousWordStart(pos);
+        let end = forwards ? this.nextWordStart(pos) : pos;
+        return this.deleteCharRange(start, end);
     }
 }
 
-class Cursor extends Observable {
-    constructor(lines, column=0, row=0) {
-        super();
+class Lines {
+    constructor(lines = []) {
+        this.lines = lines;
+    }
+
+    toString() {
+        return this.lines.map(e => e.toString()).join('\n');
+    }
+
+    getLine(i) {
+        return this.lines[i];
+    }
+
+    get length() {
+        return this.lines.length;
+    }
+
+    getLineLength(i) {
+        return this.getLine(i).length;
+    }
+
+    getChar(row, column) {
+        return this.getLine(row).getChar(column);
+    }
+
+    deleteLines(row, count, forwards = true) {
+        return new Lines(spliceBothWays(this.lines, row, count, [], forwards));
+    }
+
+    insertLinesArray(row, lines) {
+        this.lines.splice(row, 0, ...lines);
+    }
+
+    insertLines(row, lines) {
+        this.insertLinesArray(row, lines.lines);
+    }
+
+    insertNewLine(row, pos) {
+        let line = this.getLine(row);
+        let deleted = line.deleteChars(pos, Infinity);
+        this.insertLinesArray(row + 1, [deleted]);
+    }
+
+    concatLines(row0, row1) {
+        this.getLine(row0).concat(this.getLine(row1));
+        this.deleteLines(row1, 1);
+    }
+
+    deleteChars(row, column, count, forwards = true) {
+        // delete chars as if there was a new line between lines
+        let line = this.getLine(row);
+        const mergeAction = () => {
+            if (forwards) {
+                if (row < this.length - 1) {
+                    line.concat(this.getLine(row + 1));
+                    this.deleteLines(row + 1, 1);
+                    return true;
+                }
+            } else {
+                if (row > 0) {
+                    row--;
+                    line = this.getLine(row);
+                    line.concat(this.getLine(row + 1));
+                    this.deleteLines(row + 1, 1);
+                    column = line.length;
+                    return true;
+                }
+            }
+            return false;
+        };
+        while (count > 0) {
+            let deleted = line.deleteChars(column, count, forwards);
+            if (!deleted.length) {
+                count--;
+                if (!mergeAction()) {
+                    break;
+                }
+            } else {
+                if (!forwards)
+                    column = 0;
+            }
+            count -= deleted.length;
+        }
+    }
+
+    deleteCharRange(startRow, startColumn, endRow, endColumn) {
+        let count = 0;
+        let row = startRow;
+        while (row <= endRow) {
+            let toAdd = this.getLineLength(row);
+            if (row === startRow) {
+                toAdd -= startColumn + 1;
+            }
+            if (row === endRow) {
+                toAdd -= this.getLineLength(row) - (endColumn + 1);
+            }
+            count += toAdd;
+            row++;
+        }
+        return this.deleteChars(startRow, startColumn, count, true);
+    }
+
+    getCharRange(startRow, startColumn, endRow, endColumn) {
+        let lines = [];
+        let row = startRow;
+        while (row <= endRow) {
+            let line = this.getLine(row);
+            let firstColumn = 0;
+            let lastColumn = line.length;
+            if (row === startRow)
+                firstColumn = startColumn;
+            if (row === endRow)
+                lastColumn = endColumn + 1;
+            lines.push(line.getRange(firstColumn, lastColumn));
+            row++;
+        }
+        return new Lines(lines);
+    }
+
+    getLinesLength(startRow, startColumn, count) {
+        let lines = [];
+        let line = this.getLine(startRow++).getRange(startColumn);
+        while (count > 0) {
+            lines.push(line.getRange(0, count));
+            count -= lines[lines.length - 1].length;
+            line = this.getLine(startRow++);
+        }
+        return new Lines(lines);
+    }
+
+    deleteWord(row, column) {
+        let deleted = this.getLine(row).deleteWord(column);
+        if (!deleted.length && row + 1 < this.length) {
+            this.concatLines(row, row + 1);
+        }
+        return deleted;
+    }
+}
+
+class Cursor {
+    constructor(lines, column = 0, row = 0) {
         this.lines = lines;
         this._column = column;
         this._row = row;
@@ -197,11 +266,8 @@ class Cursor extends Observable {
     }
 
     set row(r) {
-        let original = this._row;
         this._row = r;
         this.handleEdges();
-        if (original !== this._row)
-            this.notifyAll();
     }
 
     get column() {
@@ -209,36 +275,50 @@ class Cursor extends Observable {
     }
 
     set column(c) {
-        let original = this._column;
         this._column = c;
         this.handleEdges();
-        if (original !== this._column)
-            this.notifyAll();
     }
 
     handleEdges() {
-        this._row = Math.min(this._row, this.lines.getRows() - 1);
+        this._row = Math.min(this._row, this.lines.length - 1);
         this._row = Math.max(this._row, 0);
-        this._column = Math.min(this._column, this.lines.getColumns(this._row) + this.trailingColumns - 1);
+        this._column = Math.min(this._column, this.lines.getLineLength(this._row) + this.trailingColumns - 1);
         this._column = Math.max(this._column, 0);
     }
 }
 
 class VisualTrail {
-    constructor(cursor) {
-        this.cursor = cursor;
-        this.start = {row: 0, column: 0};
+    constructor(start, end) {
+        this._start = start || { row: 0, column: 0 };
+        this._end = end || { row: 0, column: 0 };
     }
 
-    registerStart(cell) {
-        this.start = cell;
+    set start(s) {
+        this._start = s;
     }
 
-    getStart() {
-        return compareCells(this.start, this.cursor) <= 0 ? this.start : this.cursor;
+    set end(e) {
+        this._end = e;
     }
 
-    getEnd() {
-        return compareCells(this.start, this.cursor) > 0 ? this.start : this.cursor;
+    get start() {
+        return compareCells(this._start, this._end) <= 0 ? this._start : this._end;
+    }
+
+    get end() {
+        return compareCells(this._start, this._end) > 0 ? this._start : this._end;
     }
 }
+
+const Clipboard = (() => {
+    let data;
+
+    return {
+        read() {
+            return data;
+        },
+        write(d) {
+            data = d;
+        },
+    };
+})();

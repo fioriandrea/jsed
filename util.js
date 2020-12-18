@@ -13,28 +13,6 @@ const appendCanvas = (parent) => {
 
 const isObjEmpty = obj => Object.keys(obj).length === 0 && obj.constructor === Object;
 
-const isSpace = char => char === ' '  || char === '\n' || char === '\t' || char === '\r' || char === '\b';
-
-const compareCells = (cell0, cell1) => {
-    let rowDiff = cell0.row - cell1.row;
-    let columnDiff = cell0.column - cell1.column;
-    return rowDiff !== 0 ? rowDiff : columnDiff;
-};
-
-const toLines = data => {
-    if (!data) {
-        return [['']];
-    } else if (typeof data === 'string') {
-        return [[data]];
-    } else if (Array.isArray(data)) {
-        if (Array.isArray(data[0])) {
-            return data;
-        } else {
-            return [data];
-        }
-    }
-};
-
 const milliseconds = () => window.performance.now();
 
 class HRCanvas {
@@ -192,32 +170,6 @@ class Observable {
         this.observers.forEach(o => o.respondToNotify(payload));
     }
 }
-
-const Clipboard = (() => {
-    class _Clipboard {
-        constructor() {
-            this.registers = {};
-            this.defaultRegister = 'a';
-        }
-
-        write(data, register) {
-            register = register || this.defaultRegister;
-            this.registers[register] = data;
-        }
-
-        read(register) {
-            register = register || this.defaultRegister;
-            let data = JSON.parse(JSON.stringify(this.registers[register]));
-            return data;
-        }
-
-        readToLines(register) {
-            return toLines(this.read(register));
-        }
-    }
-
-    return new _Clipboard();
-})();
 
 const downloadTextFile = (text, filename='file.txt') => {
     let element = document.createElement('a');
