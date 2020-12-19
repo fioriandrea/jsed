@@ -1,3 +1,13 @@
+/**
+ * Like native array splice, but can also delete backwards.
+ * @param array The array to splice
+ * @param start Index to start splicing from
+ * @param deleteCount Number of elements to be deleted
+ * @param toInsert Elements to be inserted
+ * @param forwards If true, behaviour is the same as normal splice. Otherwise, 
+ * it deletes backwards **excluding** the element at start (i.e. array[start] is not deleted).
+ * It is like hitting backspace in Vim.
+ */
 const spliceBothWays = (array, start, deleteCount, toInsert, forwards = true) => {
     if (!forwards) {
         deleteCount = Math.min(start, deleteCount);
@@ -230,6 +240,10 @@ class Lines {
             row++;
         }
         return new Lines(lines);
+    }
+
+    getLineRange(startRow, endRow) {
+        return new Lines(this.lines.slice(startRow, endRow));
     }
 
     getLinesLength(startRow, startColumn, count) {
