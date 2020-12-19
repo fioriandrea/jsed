@@ -33,6 +33,10 @@ class Line {
         this.raw = raw;
     }
 
+    clone() {
+        return new Line([...this.raw]);
+    }
+
     toString() {
         return this.raw.join("");
     }
@@ -126,6 +130,10 @@ class Line {
 class Lines {
     constructor(lines = []) {
         this.lines = lines;
+    }
+
+    clone() {
+        return new Lines(this.lines.map(l => l.clone()));
     }
 
     toString() {
@@ -329,7 +337,7 @@ const Clipboard = (() => {
 
     return {
         read() {
-            return data;
+            return data.clone();
         },
         write(d) {
             data = d;

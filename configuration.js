@@ -65,7 +65,7 @@ movementKeyChords.addNode(['g', 'g'], ({ cursor }) => {
     cursor.column = 0;
 });
 movementKeyChords.addNode(['G'], ({ cursor, lines }) => {
-    cursor.row = lines.length- 1;
+    cursor.row = lines.length - 1;
     cursor.column = lines.getLineLength(cursor.row);
 });
 movementKeyChords.addNode(['^'], ({ cursor }) => {
@@ -88,7 +88,7 @@ normalKeyChords.addNode(['d', 'd'], ({ cursor, lines }) => {
     cursor.handleEdges();
 });
 normalKeyChords.addNode(['y', 'y'], ({ cursor, lines }) => {
-    const copied = lines.getLine(cursor.row);
+    const copied = lines.getLine(cursor.row).clone();
     Clipboard.write(new Lines([copied]));
 });
 normalKeyChords.addNode(['d', 'w'], ({ cursor, lines }) => {
@@ -158,8 +158,8 @@ visualKeyChords.addNode(['Escape'], (editor) => editor.mode = 'normal');
 visualKeyChords.addNode(['d', 'd'], (editor) => {
     editor.mode = 'normal';
     const { lines, visualTrail } = editor;
-    let {startRow, startColumn} = visualTrail.start;
-    let {endRow, endColumn} = visualTrail.end;
+    let { startRow, startColumn } = visualTrail.start;
+    let { endRow, endColumn } = visualTrail.end;
     let chars = lines.deleteCharRange(startRow, startColumn, endRow, endColumn);
     editor.cursor.handleEdges();
     Clipboard.write(chars);
@@ -167,6 +167,6 @@ visualKeyChords.addNode(['d', 'd'], (editor) => {
 visualKeyChords.addNode(['y', 'y'], (editor) => {
     editor.mode = 'normal';
     const { lines, visualTrail } = editor;
-    let chars = lines.getCharRange(visualTrail.start, visualTrail.end);
+    let chars = lines.getCharRange(visualTrail.start, visualTrail.end).clone();
     Clipboard.write(chars);
 });
