@@ -160,7 +160,6 @@ visualKeyChords.addNode(['d', 'd'], (editor) => {
     const { lines, visualTrail } = editor;
     let { row: startRow, column: startColumn } = visualTrail.start;
     let { row: endRow, column: endColumn } = visualTrail.end;
-    console.log(visualTrail.start, visualTrail.end)
     let chars = lines.deleteCharRange(startRow, startColumn, endRow, endColumn);
     editor.cursor.handleEdges();
     Clipboard.write(chars);
@@ -171,6 +170,5 @@ visualKeyChords.addNode(['y', 'y'], (editor) => {
     let { row: startRow, column: startColumn } = visualTrail.start;
     let { row: endRow, column: endColumn } = visualTrail.end;
     let chars = lines.getCharRange(startRow, startColumn, endRow, endColumn).clone();
-    console.log(chars)
     Clipboard.write(chars);
 });

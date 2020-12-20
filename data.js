@@ -1,23 +1,3 @@
-/**
- * Like native array splice, but can also delete backwards.
- * @param array The array to splice
- * @param start Index to start splicing from
- * @param deleteCount Number of elements to be deleted
- * @param toInsert Elements to be inserted
- * @param forwards If true, behaviour is the same as normal splice. Otherwise, 
- * it deletes backwards **excluding** the element at start (i.e. array[start] is not deleted).
- * It is like hitting backspace in Vim.
- */
-const spliceBothWays = (array, start, deleteCount, toInsert, forwards = true) => {
-    if (!forwards) {
-        deleteCount = Math.min(start, deleteCount);
-        start = start - deleteCount;
-    }
-    return array.splice(start, deleteCount, ...toInsert);
-};
-
-const isSpace = char => char === ' ' || char === '\n' || char === '\t' || char === '\r' || char === '\b';
-
 const compareCells = (cell0, cell1) => {
     let rowDiff = cell0.row - cell1.row;
     let columnDiff = cell0.column - cell1.column;
@@ -61,11 +41,11 @@ class Line {
     }
 
     pushChars(chars) {
-        return this.raw.push(...chars);
+        return spliceArray(this.raw, this.raw.length - 1, 0, chars);
     }
 
     insertChars(pos, chars) {
-        return this.raw.splice(pos, 0, ...chars);
+        return spliceArray(this.raw, pos, 0, chars);
     }
 
     deleteChars(pos, deleteCount, forwards = true) {
@@ -173,7 +153,7 @@ class Lines {
     }
 
     insertLinesArray(row, lines) {
-        this.lines.splice(row, 0, ...lines);
+        spliceArray(this.lines, row, 0, lines);
     }
 
     insertLines(row, lines) {

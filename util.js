@@ -1,3 +1,55 @@
+const spliceArray = (array, start, deleteCount, toInsert) => {
+    const deleted = [];
+
+    deleteCount = Math.min(deleteCount, array.length - start);
+    for (let i = start; i < start + deleteCount; i++)
+        deleted.push(array[i]);
+
+    if (toInsert.length > deleteCount) {
+        let distance = toInsert.length - deleteCount;
+        array.length += distance;
+
+        for (let i = array.length - 1; i >= start + toInsert.length; i--) {
+            array[i] = array[i - distance];
+        }
+
+        deleteCount = toInsert.length;
+    }
+    
+    for (let i = start + toInsert.length; i < start + deleteCount; i++) {
+        let j = i + (deleteCount - toInsert.length);
+        array[i] = array[j];
+    }
+
+    for (let i = start; i < start + toInsert.length; i++) {
+        array[i] = toInsert[i - start];
+    }
+
+    array.length = array.length - deleteCount + toInsert.length;
+
+    return deleted;
+};
+
+/**
+ * Like native array splice, but can also delete backwards.
+ * @param array The array to splice
+ * @param start Index to start splicing from
+ * @param deleteCount Number of elements to be deleted
+ * @param toInsert Elements to be inserted
+ * @param forwards If true, behaviour is the same as normal splice. Otherwise, 
+ * it deletes backwards **excluding** the element at start (i.e. array[start] is not deleted).
+ * It is like hitting backspace in Vim.
+ */
+const spliceBothWays = (array, start, deleteCount, toInsert, forwards = true) => {
+    if (!forwards) {
+        deleteCount = Math.min(start, deleteCount);
+        start = start - deleteCount;
+    }
+    return array.splice(start, deleteCount, ...toInsert);
+};
+
+const isSpace = char => char === ' ' || char === '\n' || char === '\t' || char === '\r' || char === '\b';
+
 const getWindowWidth = () => window.innerWidth;
 
 const getWindowHeight = () => window.innerHeight;
