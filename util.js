@@ -30,22 +30,15 @@ const spliceArray = (array, start, deleteCount, toInsert) => {
     return deleted;
 };
 
-/**
- * Like native array splice, but can also delete backwards.
- * @param array The array to splice
- * @param start Index to start splicing from
- * @param deleteCount Number of elements to be deleted
- * @param toInsert Elements to be inserted
- * @param forwards If true, behaviour is the same as normal splice. Otherwise, 
- * it deletes backwards **excluding** the element at start (i.e. array[start] is not deleted).
- * It is like hitting backspace in Vim.
- */
+// If forwards is true, behaviour is the same as normal splice. Otherwise, 
+// it deletes backwards **excluding** the element at start (i.e. array[start] is not deleted).
+// It is like hitting backspace in Vim.
 const spliceBothWays = (array, start, deleteCount, toInsert, forwards = true) => {
     if (!forwards) {
         deleteCount = Math.min(start, deleteCount);
         start = start - deleteCount;
     }
-    return array.splice(start, deleteCount, ...toInsert);
+    return spliceArray(array, start, deleteCount, toInsert);
 };
 
 const isSpace = char => char === ' ' || char === '\n' || char === '\t' || char === '\r' || char === '\b';
