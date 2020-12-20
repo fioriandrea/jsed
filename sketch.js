@@ -30,7 +30,8 @@ function setup() {
 
     lines = new Lines();
     cursor = new Cursor(lines, 0, 0);
-    visualTrail = new VisualTrail(cursor);
+    visualTrail = new VisualTrail();
+    visualTrail.end = cursor;
     screen = new Screen(hrcanvas.width, hrcanvas.height, columnSize, rowSize);
     editor = {
         lines,
@@ -43,9 +44,9 @@ function setup() {
         set mode(m) {
             this._mode = m;
             if (m === 'insert')
-                this.cursor.trailingColumns = 1;
+                this.cursor.trailingColumn = true;
             else
-                this.cursor.trailingColumns = 0;
+                this.cursor.trailingColumn = false;
             this.cursor.handleEdges();
         },
         screen,
@@ -79,6 +80,9 @@ function drawEditor() {
     drawLines(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
     drawCursor(hrcanvas, editor, toDrawCellWrapper);
     drawLineNumbers(hrcanvas, editor, toDrawCells);
+    if (editor.mode === 'visual') {
+        drawVisualTrail(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
+    }
 }
 
 setup();

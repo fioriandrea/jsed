@@ -158,8 +158,9 @@ visualKeyChords.addNode(['Escape'], (editor) => editor.mode = 'normal');
 visualKeyChords.addNode(['d', 'd'], (editor) => {
     editor.mode = 'normal';
     const { lines, visualTrail } = editor;
-    let { startRow, startColumn } = visualTrail.start;
-    let { endRow, endColumn } = visualTrail.end;
+    let { row: startRow, column: startColumn } = visualTrail.start;
+    let { row: endRow, column: endColumn } = visualTrail.end;
+    console.log(visualTrail.start, visualTrail.end)
     let chars = lines.deleteCharRange(startRow, startColumn, endRow, endColumn);
     editor.cursor.handleEdges();
     Clipboard.write(chars);
@@ -167,6 +168,9 @@ visualKeyChords.addNode(['d', 'd'], (editor) => {
 visualKeyChords.addNode(['y', 'y'], (editor) => {
     editor.mode = 'normal';
     const { lines, visualTrail } = editor;
-    let chars = lines.getCharRange(visualTrail.start, visualTrail.end).clone();
+    let { row: startRow, column: startColumn } = visualTrail.start;
+    let { row: endRow, column: endColumn } = visualTrail.end;
+    let chars = lines.getCharRange(startRow, startColumn, endRow, endColumn).clone();
+    console.log(chars)
     Clipboard.write(chars);
 });

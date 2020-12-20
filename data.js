@@ -193,6 +193,8 @@ class Lines {
 
     deleteChars(row, column, count, forwards = true) {
         // delete chars as if there was a new line between lines
+        // it's like every line was followed by \n (except the last one).
+        // if you want to remove a line, you have to give line.length + 1 as a count
         let deletedLines = [];
         let line = this.getLine(row);
         const mergeAction = () => {
@@ -237,15 +239,15 @@ class Lines {
         while (row <= endRow) {
             let toAdd = this.getLineLength(row);
             if (row === startRow) {
-                toAdd -= startColumn + 1;
+                toAdd -= startColumn;
             }
             if (row === endRow) {
-                toAdd -= this.getLineLength(row) - (endColumn + 1);
+                toAdd -= (this.getLineLength(row) - 1) - endColumn;
             }
             count += toAdd;
             row++;
         }
-        return this.deleteChars(startRow, startColumn, count, true);
+        return this.deleteChars(startRow, startColumn, count + (endRow - startRow), true);
     }
 
     getCharRange(startRow, startColumn, endRow, endColumn) {
@@ -294,7 +296,7 @@ class Cursor {
         this.lines = lines;
         this._column = column;
         this._row = row;
-        this._trailingColumn = true;
+        this.trailingColumn = true;
         this.handleEdges();
     }
 
@@ -317,7 +319,7 @@ class Cursor {
     }
 
     get trailingColumns() {
-        return this._trailingColumn ? 1 : 0;
+        return this.trailingColumn ? 1 : 0;
     }
 
     handleEdges() {

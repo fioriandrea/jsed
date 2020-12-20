@@ -25,6 +25,28 @@ const drawCursor = (hrcanvas, { screen, cursor }, toDrawCellWrapper) => {
     hrcanvas.context2d.fillRect(x, y, screen.columnSize, screen.rowSize);
 };
 
+const drawVisualTrail = (hrcanvas, { screen, visualTrail }, toDrawCells, toDrawCellWrapper) => {
+    hrcanvas.context2d.fillStyle = visualTrailColor;
+
+    for (let i = 0; i < toDrawCells.length; i++) {
+        let toDrawCell = toDrawCells[i];
+        let row = toDrawCell.row;
+        if (row < visualTrail.start.row)
+            continue;
+        if (row > visualTrail.end.row)
+            continue;
+        for (let column = toDrawCell.columns.start; column <= toDrawCell.columns.end; column++) {
+            if (row === visualTrail.start.row && column < visualTrail.start.column)
+                continue;
+            if (row === visualTrail.end.row && column > visualTrail.end.column)
+                continue;
+            let cell = toDrawCellWrapper(row, column);
+            let { x, y } = screen.cellToPixels(cell);
+            hrcanvas.context2d.fillRect(x, y, screen.columnSize, screen.rowSize);
+        }
+    }
+};
+
 const drawLineNumbers = (hrcanvas, { screen, cursor, lines }, toDrawCells) => {
     hrcanvas.context2d.fillStyle = numberColor;
     let screenRow = 0;
