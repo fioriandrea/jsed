@@ -90,7 +90,7 @@ class Screen {
 }
 
 const wrapWritableCell = (screen, cell) => {
-    if (cell.column > screen.nwritableColumns) {
+    if (cell.column >= screen.nwritableColumns) {
         cell.row++;
         cell.column = 0;
     }
@@ -102,7 +102,7 @@ const incrementWritableCell = (screen, cell) => {
 };
 
 const screenRows = (screen, line) => {
-    return line.length === 0 ? 1 : Math.ceil(line.length / screen.nwritableColumns);
+    return Math.ceil((line.length + 1) / screen.nwritableColumns);
 };
 
 const makeToDrawCell = (row, start, end) => {
@@ -264,33 +264,3 @@ const getToDrawCells = (oldToDraw, { screen, lines, cursor }) => {
         return smallerThanScreenCells(oldToDraw, { screen, lines, cursor });
     }
 };
-
-/*
-class Drawer {
-    constructor(editor, hrcanvas) {
-        this.editor = editor;
-        this.canvas = hrcanvas;
-    }
-
-    drawTildes() {
-        this.setFont();
-        this.canvas.context2d.fillStyle = tildeColor;
-        let numberDrawData = this.screenService.getNumbersPositions();
-        let tildeIndex = numberDrawData[numberDrawData.length - 1].screenRow + 1;
-        while (tildeIndex <= this.screenService.screen.lastWritableRow) {
-            const { x, y } = this.screenService.cellToTextPixels(0, tildeIndex++);
-            this.canvas.context2d.fillText('~', x, y, this.screenService.screen.columnSize);
-        }
-    }
-
-    drawVisualTrail() {
-        if (this.editor.mode !== 'visual')
-            return;
-        this.canvas.context2d.fillStyle = visualTrailColor;
-        let visualTrailDrawData = this.screenService.getVisualTrailPositions();
-        visualTrailDrawData.forEach(e => {
-            const { x, y } = this.screenService.cellToPixels(e.column, e.row);
-            this.canvas.context2d.fillRect(x, y, this.screenService.screen.columnSize, this.screenService.screen.rowSize);
-        });
-    }
-}*/
