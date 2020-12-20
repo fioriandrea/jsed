@@ -86,12 +86,6 @@ class Line {
         return pos;
     }
 
-    previousWordStart(pos) {
-        pos = this.wordStart(pos) - 1;
-        pos = this.wordStart(pos);
-        return pos;
-    }
-
     nextWordStart(pos) {
         pos = this.wordEnd(pos);
         pos = this.skipSpaces(pos);
@@ -105,7 +99,7 @@ class Line {
     }
 
     deleteWord(pos, forwards = true) {
-        let start = forwards ? pos : this.previousWordStart(pos);
+        let start = forwards ? pos : this.wordStart(pos);
         let end = forwards ? this.nextWordStart(pos) : pos;
         return this.deleteCharRange(start, end);
     }
@@ -262,10 +256,14 @@ class Lines {
         return new Lines(lines);
     }
 
-    deleteWord(row, column) {
-        let deleted = this.getLine(row).deleteWord(column);
-        if (!deleted.length && row + 1 < this.length) {
-            this.concatLines(row, row + 1);
+    deleteWord(row, column, forwards = true) {
+        let deleted = this.getLine(row).deleteWord(column, forwards);
+        if (!deleted.length) {
+            if (forwards && row + 1 < this.length) {
+                this.concatLines(row, row + 1);
+            } else if (!forwards && row - 1 >= 0) {
+                this.concatLines(row - 1, row);
+            }
         }
         return deleted;
     }

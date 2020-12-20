@@ -93,12 +93,19 @@ normalKeyChords.addNode(['y', 'y'], ({ cursor, lines }) => {
 });
 normalKeyChords.addNode(['d', 'w'], ({ cursor, lines }) => {
     const deleted = lines.deleteWord(cursor.row, cursor.column);
-    Clipboard.write(deleted);
+    Clipboard.write(new Lines([deleted]));
 });
 normalKeyChords.addNode(['d', 'b'], ({ cursor, lines }) => {
     const deleted = lines.deleteWord(cursor.row, cursor.column, false);
-    Clipboard.write(deleted);
+    Clipboard.write(new Lines([deleted]));
     cursor.handleEdges();
+});
+normalKeyChords.addNode(['w'], ({ cursor, lines }) => {
+    cursor.column = lines.getLine(cursor.row).nextWordStart(cursor.column);
+});
+normalKeyChords.addNode(['b'], ({ cursor, lines }) => {
+    cursor.column--;
+    cursor.column = lines.getLine(cursor.row).wordStart(cursor.column);
 });
 normalKeyChords.addNode(['x'], ({ cursor, lines }) => {
     const deleted = lines.deleteChars(cursor.row, cursor.column, 1, true);
@@ -148,7 +155,7 @@ normalKeyChords.addNode(['P', 'P'], ({ lines, cursor }) => {
     lines.insertLines(cursor.row, text);
     cursor.column = 0;
 });
-normalKeyChords.addNode(['w', 'w'], ({ lines }) => {
+normalKeyChords.addNode(['l', 'd'], ({ lines }) => {
     downloadTextFile(lines.toString());
 });
 

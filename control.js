@@ -32,8 +32,8 @@ class ModeControl {
 
     keyPressed(key, editor) {
         if (!this.timeout.output()) {
-            this.timeout.reset();
             this.keyChordControl.cleanBuffer();
+            this.timeout.reset();
         }
         let node = this.keyChordControl.keyPressed(key, editor);
         if (!node) {
