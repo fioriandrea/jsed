@@ -236,7 +236,7 @@ const smallerThanScreenCells = (oldToDraw, { screen, lines, cursor }) => {
             .map(r => makeToDrawCell(r, 0, lines.getLineLength(r)));
 };
 
-const biggerThanScreenCells = (oldToDraw, { screen, lines, cursor }) => {
+const biggerThanScreenCells = (oldToDraw, { screen, cursor }) => {
     if (oldToDraw.length === 1 && cursor.row === oldToDraw[0].row) {
         let oldToDrawCell = oldToDraw[0];
         if (cursor.column < oldToDrawCell.columns.start) {
