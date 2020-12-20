@@ -66,3 +66,17 @@ const drawLineNumbers = (hrcanvas, { screen, cursor, lines }, toDrawCells) => {
         screenRow += rowsToSkip;
     }
 };
+
+const drawTildes = (hrcanvas, { screen }, toDrawCells, toDrawCellWrapper) => {
+    hrcanvas.context2d.fillStyle = tildeColor;
+    let last = toDrawCells[toDrawCells.length - 1];
+    let cell = toDrawCellWrapper(last.row, last.columns.end);
+    cell.row++;
+    cell.column = 0;
+
+    while (cell.row < screen.nrows) {
+        let { x, y } = screen.cellToPixels(cell);
+        hrcanvas.context2d.fillText('~', x, y + screen.rowSize / 2, screen.columnSize, screen.rowSize);
+        cell.row++;
+    }
+};

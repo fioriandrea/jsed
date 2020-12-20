@@ -80,6 +80,7 @@ function drawEditor() {
     drawLines(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
     drawCursor(hrcanvas, editor, toDrawCellWrapper);
     drawLineNumbers(hrcanvas, editor, toDrawCells);
+    drawTildes(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
     if (editor.mode === 'visual') {
         drawVisualTrail(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
     }
