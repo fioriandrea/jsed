@@ -153,24 +153,6 @@ class KeyRecorder {
     }
 }
 
-class Observable {
-    constructor() {
-        this.observers = [];
-    }
-
-    addObserver(obs) {
-        this.observers.push(obs);
-    }
-
-    removeObserver(obj) {
-        this.observers = this.observers.filter(o => o !== obj);
-    }
-
-    notifyAll(payload) {
-        this.observers.forEach(o => o.respondToNotify(payload));
-    }
-}
-
 const downloadTextFile = (text, filename='file.txt') => {
     let element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));

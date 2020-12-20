@@ -46,7 +46,7 @@ class Line {
     }
 
     getChar(pos) {
-        return this.raw[pos];
+        return this.raw[pos] || '';
     }
 
     getRange(start, end) {
@@ -54,6 +54,10 @@ class Line {
             end = this.length;
         }
         return new Line(this.raw.slice(start, end));
+    }
+
+    getLengthRange(start, count) {
+        return this.getRange(start, start + count);
     }
 
     pushChars(chars) {
@@ -128,8 +132,8 @@ class Line {
 }
 
 class Lines {
-    constructor(lines = []) {
-        this.lines = lines;
+    constructor(lines) {
+        this.lines = lines || [new Line()];
     }
 
     clone() {
@@ -138,6 +142,10 @@ class Lines {
 
     toString() {
         return this.lines.map(e => e.toString()).join('\n');
+    }
+
+    insertChars(row, column, ...chars) {
+        return this.getLine(row).insertChars(column, ...chars);
     }
 
     getLine(i) {
@@ -157,7 +165,11 @@ class Lines {
     }
 
     deleteLines(row, count, forwards = true) {
-        return new Lines(spliceBothWays(this.lines, row, count, [], forwards));
+        let deleted = new Lines(spliceBothWays(this.lines, row, count, [], forwards));
+        if (this.lines.length === 0) {
+            this.lines.push(new Line());
+        }
+        return deleted;
     }
 
     insertLinesArray(row, lines) {
@@ -181,6 +193,7 @@ class Lines {
 
     deleteChars(row, column, count, forwards = true) {
         // delete chars as if there was a new line between lines
+        let deletedLines = [];
         let line = this.getLine(row);
         const mergeAction = () => {
             if (forwards) {
@@ -209,11 +222,13 @@ class Lines {
                     break;
                 }
             } else {
+                deletedLines.push(deleted);
                 if (!forwards)
                     column = 0;
             }
             count -= deleted.length;
         }
+        return new Lines(deletedLines);
     }
 
     deleteCharRange(startRow, startColumn, endRow, endColumn) {
@@ -279,7 +294,7 @@ class Cursor {
         this.lines = lines;
         this._column = column;
         this._row = row;
-        this.trailingColumns = 1;
+        this._trailingColumn = true;
         this.handleEdges();
     }
 
@@ -299,6 +314,10 @@ class Cursor {
     set column(c) {
         this._column = c;
         this.handleEdges();
+    }
+
+    get trailingColumns() {
+        return this._trailingColumn ? 1 : 0;
     }
 
     handleEdges() {

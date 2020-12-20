@@ -45,7 +45,7 @@ class ModeControl {
 const controls = {
     'insert': new ModeControl(insertKeyChords, (key, editor) => {
             let {cursor, lines} = editor;
-            lines.insertCharacters(cursor.row, cursor.column, key);
+            lines.insertChars(cursor.row, cursor.column, [key]);
             cursor.column++;
     }, chordDelay),
     'normal': new ModeControl(normalKeyChords, (() => {}), chordDelay),

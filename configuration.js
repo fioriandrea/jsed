@@ -127,7 +127,7 @@ normalKeyChords.addNode(['A'], (editor) => {
 normalKeyChords.addNode(['o'], (editor) => {
     editor.mode = 'insert';
     const { cursor, lines } = editor;
-    lines.insertLines(cursor.row + 1);
+    lines.insertLinesArray(cursor.row + 1, [new Line()]);
     cursor.row++;
     cursor.column = 0;
 });

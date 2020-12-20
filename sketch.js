@@ -1,11 +1,11 @@
 let lines;
 let cursor;
 let screen;
-let screenService;
 let editor;
-let drawer;
 
-let blinker;
+let toDrawCells;
+let screenLineCells;
+
 let keyRecorder;
 
 let hrcanvas;
@@ -14,7 +14,7 @@ const width = () => Math.max(100, getWindowWidth());
 const height = () => Math.max(100, getWindowHeight());
 
 function updateScreenData() {
-    screenService.adjustScreen(editor);
+    screen.adjustLeftPadding(lines);
 }
 
 function windowResized() {
@@ -22,7 +22,6 @@ function windowResized() {
     screen.width = width();
     screen.height = height();
     updateScreenData();
-    screenService.adjustScreenLines();
     drawEditor();
 }
 
@@ -48,10 +47,16 @@ function setup() {
             else
                 this.cursor.trailingColumns = 0;
             this.cursor.handleEdges();
-        }
+        },
+        screen,
     };
-    screenService = new WrapScreenService(screen, editor);
-    drawer = new Drawer(screenService, editor, hrcanvas);
+    toDrawCells = getToDrawCells([{
+        row: 0, 
+        columns: {
+            start: 0,
+            end: lines.getLine(0).length - 1,
+        },
+    }], editor);
 
     keyRecorder = new KeyRecorder();
     keyRecorder.bind(window);
@@ -66,12 +71,14 @@ function setup() {
 function drawEditor() {
     hrcanvas.context2d.fillStyle = backgroundColor;
     hrcanvas.context2d.fillRect(0, 0, hrcanvas.width, hrcanvas.height);
+    setFont(hrcanvas);
 
-    drawer.drawCursor();
-    drawer.drawLines();
-    drawer.drawLineNumbers();
-    drawer.drawTildes();
-    drawer.drawVisualTrail();
+    toDrawCells = getToDrawCells(toDrawCells, editor);
+    const toDrawCellWrapper = getToDrawCellWrapper(toDrawCells);
+    
+    drawLines(hrcanvas, editor, toDrawCells, toDrawCellWrapper);
+    drawCursor(hrcanvas, editor, toDrawCellWrapper);
+    drawLineNumbers(hrcanvas, editor, toDrawCells);
 }
 
 setup();
