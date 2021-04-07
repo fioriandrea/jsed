@@ -1,31 +1,24 @@
 const spliceArray = (array, start, deleteCount, toInsert) => {
     const deleted = [];
-
     deleteCount = Math.min(deleteCount, array.length - start);
-    for (let i = start; i < start + deleteCount; i++)
+    for (let i = start; i < start + deleteCount; i++) {
         deleted.push(array[i]);
-
+    }
     if (toInsert.length > deleteCount) {
-        let distance = toInsert.length - deleteCount;
+        const distance = toInsert.length - deleteCount;
         array.length += distance;
-
-        for (let i = array.length - 1; i >= start + toInsert.length; i--) {
+        for (let i = array.length - 1; i >= start + deleteCount; i--) {
             array[i] = array[i - distance];
         }
-
         deleteCount = toInsert.length;
     }
-    
-    for (let i = start + toInsert.length; i < start + deleteCount; i++) {
-        let j = i + (deleteCount - toInsert.length);
-        array[i] = array[j];
+    for (let i = 0; i < toInsert.length; i++, deleteCount--) {
+        array[start + i] = toInsert[i];
     }
-
-    for (let i = start; i < start + toInsert.length; i++) {
-        array[i] = toInsert[i - start];
+    for (let i = start + toInsert.length; i < array.length - deleteCount; i++) {
+        array[i] = array[i + deleteCount];
     }
-
-    array.length = array.length - deleteCount + toInsert.length;
+    array.length -= deleteCount;
 
     return deleted;
 };
