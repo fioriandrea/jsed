@@ -246,8 +246,8 @@ const biggerThanScreenCells = (oldToDraw, { screen, cursor }) => {
             };
         } else if (cursor.column > oldToDrawCell.columns.end) {
             oldToDrawCell.columns = {
-                start: cursor.column - screen.nwritableCells,
-                end: cursor.column,
+                start: cursor.column - (screen.nwritableCells - screen.nwritableColumns),
+                end: cursor.column + screen.nwritableColumns - 1,
             };
         }
         return [oldToDrawCell];

@@ -123,7 +123,7 @@ class Lines {
     }
 
     getLine(i) {
-        return this.lines[i];
+        return this.lines[i] || new Line([]);
     }
 
     get length() {
