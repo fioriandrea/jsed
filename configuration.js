@@ -91,21 +91,20 @@ normalKeyChords.addNode(['y', 'y'], ({ cursor, lines }) => {
     const copied = lines.getLine(cursor.row).clone();
     Clipboard.write(new Lines([copied]));
 });
-normalKeyChords.addNode(['d', 'w'], ({ cursor, lines }) => {
-    const deleted = lines.deleteWord(cursor.row, cursor.column);
-    Clipboard.write(new Lines([deleted]));
-});
-normalKeyChords.addNode(['d', 'b'], ({ cursor, lines }) => {
-    const deleted = lines.deleteWord(cursor.row, cursor.column, false);
-    Clipboard.write(new Lines([deleted]));
-    cursor.handleEdges();
-});
 normalKeyChords.addNode(['w'], ({ cursor, lines }) => {
     cursor.column = lines.getLine(cursor.row).nextWordStart(cursor.column);
 });
 normalKeyChords.addNode(['b'], ({ cursor, lines }) => {
     cursor.column--;
     cursor.column = lines.getLine(cursor.row).wordStart(cursor.column);
+});
+normalKeyChords.addNode(['d', 'w'], ({ cursor, lines }) => {
+    const deleted = lines.deleteWord(cursor.row, cursor.column);
+    Clipboard.write(new Lines([deleted]));
+});
+normalKeyChords.addNode(['d', 'b'], ({ cursor, lines }) => {
+    normalKeyChords.getNode(['b']).payload({ cursor, lines });
+    normalKeyChords.getNode(['d', 'w']).payload({ cursor, lines });
 });
 normalKeyChords.addNode(['x'], ({ cursor, lines }) => {
     const deleted = lines.deleteChars(cursor.row, cursor.column, 1, true);

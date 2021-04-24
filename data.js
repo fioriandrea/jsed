@@ -92,16 +92,8 @@ class Line {
         return pos;
     }
 
-    getWord(pos, forwards = true) {
-        let start = forwards ? pos : this.wordStart(pos);
-        let end = forwards ? this.wordEnd(pos) : pos;
-        return this.getRange(start, end);
-    }
-
-    deleteWord(pos, forwards = true) {
-        let start = forwards ? pos : this.wordStart(pos);
-        let end = forwards ? this.nextWordStart(pos) : pos;
-        return this.deleteCharRange(start, end);
+    deleteWord(pos) {
+        return this.deleteCharRange(pos, this.nextWordStart(pos));
     }
 }
 
@@ -118,8 +110,8 @@ class Lines {
         return this.lines.map(e => e.toString()).join('\n');
     }
 
-    insertChars(row, column, ...chars) {
-        return this.getLine(row).insertChars(column, ...chars);
+    insertChars(row, column, chars) {
+        return this.getLine(row).insertChars(column, chars);
     }
 
     getLine(i) {
@@ -200,7 +192,7 @@ class Lines {
             } else {
                 deletedLines.push(deleted);
                 if (!forwards)
-                    column = 0;
+                    column -= deleted.length;
             }
             count -= deleted.length;
         }
@@ -256,13 +248,11 @@ class Lines {
         return new Lines(lines);
     }
 
-    deleteWord(row, column, forwards = true) {
-        let deleted = this.getLine(row).deleteWord(column, forwards);
+    deleteWord(row, column) {
+        let deleted = this.getLine(row).deleteWord(column);
         if (!deleted.length) {
-            if (forwards && row + 1 < this.length) {
+            if (row + 1 < this.length) {
                 this.concatLines(row, row + 1);
-            } else if (!forwards && row - 1 >= 0) {
-                this.concatLines(row - 1, row);
             }
         }
         return deleted;
